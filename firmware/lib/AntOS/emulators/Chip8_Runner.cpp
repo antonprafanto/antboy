@@ -72,7 +72,18 @@ void Chip8_RunnerClass::loadBuiltinRom(int gameIdx) {
 
 bool Chip8_RunnerClass::loadRomFromSD(const char* fullPath) {
     if (!AntBoy.SD.lockBus(200)) return false;
-    File f = SD.open(fullPath, FILE_READ);
+
+    char pathBuf[128];
+    if (fullPath[0] == '/') {
+        snprintf(pathBuf, sizeof(pathBuf), "%s", fullPath);
+    } else {
+        snprintf(pathBuf, sizeof(pathBuf), "/roms/atari/%s", fullPath);
+    }
+
+    File f = SD.open(pathBuf, FILE_READ);
+    if (!f) {
+        f = SD.open(fullPath, FILE_READ);
+    }
     if (!f) {
         AntBoy.SD.unlockBus();
         return false;

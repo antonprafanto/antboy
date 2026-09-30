@@ -36,12 +36,15 @@ void Retro_LauncherClass::scanRoms() {
         File file = dir.openNextFile();
         while (file && romCount < 16) {
             if (!file.isDirectory()) {
-                const char* name = file.name();
+                const char* rawName = file.name();
+                const char* slash = strrchr(rawName, '/');
+                const char* name = (slash != nullptr) ? (slash + 1) : rawName;
                 int len = strlen(name);
                 const char* ext = CONSOLE_EXTS[currentConsole];
                 int extLen = strlen(ext);
                 if (len > extLen && strcasecmp(name + len - extLen, ext) == 0) {
                     strncpy(romFileList[romCount], name, sizeof(romFileList[romCount]) - 1);
+                    romFileList[romCount][sizeof(romFileList[romCount]) - 1] = '\0';
                     romFileSizes[romCount] = file.size();
                     romCount++;
                 }
@@ -147,8 +150,12 @@ void Retro_LauncherClass::renderBrowser() {
 
 void Retro_LauncherClass::showRomInfo(const char* filename) {
     if (currentConsole == RETRO_TYPE_ATARI) {
-        char fullPath[64];
-        snprintf(fullPath, sizeof(fullPath), "/roms/atari/%s", filename);
+        char fullPath[128];
+        if (filename[0] == '/') {
+            snprintf(fullPath, sizeof(fullPath), "%s", filename);
+        } else {
+            snprintf(fullPath, sizeof(fullPath), "/roms/atari/%s", filename);
+        }
         Chip8_Runner.run(fullPath);
         return;
     }

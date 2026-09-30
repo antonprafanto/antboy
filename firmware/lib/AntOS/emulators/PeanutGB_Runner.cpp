@@ -38,8 +38,8 @@ static const uint8_t BUILTIN_DEMO_ROM[256] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-uint8_t PeanutGB_RunnerClass::romReadCallback(struct gb_s *gb, const uint32_t addr) {
-    PeanutGB_RunnerClass* runner = (PeanutGB_RunnerClass*)gb->direct;
+uint8_t PeanutGB_RunnerClass::romReadCallback(struct gb_s *gb, const uint_fast32_t addr) {
+    PeanutGB_RunnerClass* runner = (PeanutGB_RunnerClass*)gb->direct.priv;
     if (!runner) return 0xFF;
 
     if (!runner->hasRomLoaded) {
@@ -56,18 +56,28 @@ uint8_t PeanutGB_RunnerClass::romReadCallback(struct gb_s *gb, const uint32_t ad
     return 0xFF;
 }
 
-uint8_t PeanutGB_RunnerClass::ramReadCallback(struct gb_s *gb, const uint32_t addr) {
+uint8_t PeanutGB_RunnerClass::ramReadCallback(struct gb_s *gb, const uint_fast32_t addr) {
+    PeanutGB_RunnerClass* runner = (PeanutGB_RunnerClass*)gb->direct.priv;
+    if (!runner) return 0xFF;
+    if (addr < sizeof(runner->cartRam)) {
+        return runner->cartRam[addr];
+    }
     return 0xFF;
 }
 
-void PeanutGB_RunnerClass::ramWriteCallback(struct gb_s *gb, const uint32_t addr, const uint8_t val) {
+void PeanutGB_RunnerClass::ramWriteCallback(struct gb_s *gb, const uint_fast32_t addr, const uint8_t val) {
+    PeanutGB_RunnerClass* runner = (PeanutGB_RunnerClass*)gb->direct.priv;
+    if (!runner) return;
+    if (addr < sizeof(runner->cartRam)) {
+        runner->cartRam[addr] = val;
+    }
 }
 
 void PeanutGB_RunnerClass::errorCallback(struct gb_s *gb, const enum gb_error_e gb_err, const uint16_t addr) {
 }
 
-void PeanutGB_RunnerClass::drawLineCallback(struct gb_s *gb, const uint8_t pixels[160], const uint_fast8_t line) {
-    PeanutGB_RunnerClass* runner = (PeanutGB_RunnerClass*)gb->direct;
+void PeanutGB_RunnerClass::drawLineCallback(struct gb_s *gb, const uint8_t *pixels, const uint_fast8_t line) {
+    PeanutGB_RunnerClass* runner = (PeanutGB_RunnerClass*)gb->direct.priv;
     if (!runner) return;
 
     // Buffer garis RGB565 (160 piksel Game Boy)
@@ -99,10 +109,13 @@ void PeanutGB_RunnerClass::scanRoms() {
         File file = dir.openNextFile();
         while (file && romCount < 16) {
             if (!file.isDirectory()) {
-                const char* name = file.name();
+                const char* rawName = file.name();
+                const char* slash = strrchr(rawName, '/');
+                const char* name = (slash != nullptr) ? (slash + 1) : rawName;
                 int len = strlen(name);
                 if (len > 3 && (strcasecmp(name + len - 3, ".gb") == 0 || strcasecmp(name + len - 4, ".gbc") == 0)) {
                     strncpy(romFileList[romCount], name, sizeof(romFileList[romCount]) - 1);
+                    romFileList[romCount][sizeof(romFileList[romCount]) - 1] = '\0';
                     romFileSizes[romCount] = file.size();
                     romCount++;
                 }
@@ -121,8 +134,16 @@ bool PeanutGB_RunnerClass::loadRom(const char* filename) {
     if (!AntBoy.SD.lockBus(200)) return false;
 
     char fullPath[128];
-    snprintf(fullPath, sizeof(fullPath), "/roms/gb/%s", filename);
+    if (filename[0] == '/') {
+        snprintf(fullPath, sizeof(fullPath), "%s", filename);
+    } else {
+        snprintf(fullPath, sizeof(fullPath), "/roms/gb/%s", filename);
+    }
+
     romFile = SD.open(fullPath, FILE_READ);
+    if (!romFile) {
+        romFile = SD.open(filename, FILE_READ);
+    }
 
     if (!romFile) {
         AntBoy.SD.unlockBus();
@@ -187,8 +208,13 @@ bool PeanutGB_RunnerClass::loadRom(const char* filename) {
     romFile.close();
     AntBoy.SD.unlockBus();
     hasRomLoaded = true;
+    memset(cartRam, 0, sizeof(cartRam));
 
-    gb_init(&gb, romReadCallback, ramReadCallback, ramWriteCallback, errorCallback, this);
+    enum gb_init_error_e err = gb_init(&gb, romReadCallback, ramReadCallback, ramWriteCallback, errorCallback, this);
+    if (err != GB_INIT_NO_ERROR) {
+        closeRom();
+        return false;
+    }
     gb_init_lcd(&gb, drawLineCallback);
 
     return true;
@@ -407,15 +433,15 @@ void PeanutGB_RunnerClass::runEmulationLoop() {
             lastFrame = millis();
         }
 
-        // Map Kontrol Tombol Fisik ANTBOY ke Joypad Game Boy
-        gb.joypad.bits.a      = AntBoy.Buttons.isPressed(ANT_BTN_A);
-        gb.joypad.bits.b      = AntBoy.Buttons.isPressed(ANT_BTN_B);
-        gb.joypad.bits.select = AntBoy.Buttons.isPressed(ANT_BTN_SELECT);
-        gb.joypad.bits.start  = AntBoy.Buttons.isPressed(ANT_BTN_START);
-        gb.joypad.bits.up     = AntBoy.Buttons.isPressed(ANT_BTN_UP);
-        gb.joypad.bits.down   = AntBoy.Buttons.isPressed(ANT_BTN_DOWN);
-        gb.joypad.bits.left   = AntBoy.Buttons.isPressed(ANT_BTN_LEFT);
-        gb.joypad.bits.right  = AntBoy.Buttons.isPressed(ANT_BTN_RIGHT);
+        // Map Kontrol Tombol Fisik ANTBOY ke Joypad Game Boy (Active-low: 0 = pressed, 1 = unpressed)
+        gb.direct.joypad_bits.a      = !AntBoy.Buttons.isPressed(ANT_BTN_A);
+        gb.direct.joypad_bits.b      = !AntBoy.Buttons.isPressed(ANT_BTN_B);
+        gb.direct.joypad_bits.select = !AntBoy.Buttons.isPressed(ANT_BTN_SELECT);
+        gb.direct.joypad_bits.start  = !AntBoy.Buttons.isPressed(ANT_BTN_START);
+        gb.direct.joypad_bits.up     = !AntBoy.Buttons.isPressed(ANT_BTN_UP);
+        gb.direct.joypad_bits.down   = !AntBoy.Buttons.isPressed(ANT_BTN_DOWN);
+        gb.direct.joypad_bits.left   = !AntBoy.Buttons.isPressed(ANT_BTN_LEFT);
+        gb.direct.joypad_bits.right  = !AntBoy.Buttons.isPressed(ANT_BTN_RIGHT);
 
         // Jalankan 1 frame emulasi
         gb_run_frame(&gb);
