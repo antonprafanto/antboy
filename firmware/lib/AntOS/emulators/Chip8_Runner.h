@@ -5,7 +5,8 @@
 
 class Chip8_RunnerClass {
 public:
-    void run();
+    void run(const char* romPath = nullptr);
+    bool loadRomFromSD(const char* fullPath);
 
 private:
     uint8_t memory[4096];

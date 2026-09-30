@@ -16,7 +16,7 @@ public:
 
 private:
     RetroConsoleType currentConsole = RETRO_TYPE_NES;
-    char romFileList[16][32];
+    char romFileList[16][64];
     uint32_t romFileSizes[16];
     int romCount = 0;
     int selectedRomIndex = 0;

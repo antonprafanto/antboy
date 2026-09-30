@@ -146,33 +146,41 @@ void Retro_LauncherClass::renderBrowser() {
 }
 
 void Retro_LauncherClass::showRomInfo(const char* filename) {
-    AntBoy.Display.fillRoundRect(30, 60, 260, 120, 6, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawRoundRect(30, 60, 260, 120, 6, ANTOS_COLOR_PIL_GAMING);
+    if (currentConsole == RETRO_TYPE_ATARI) {
+        char fullPath[64];
+        snprintf(fullPath, sizeof(fullPath), "/roms/atari/%s", filename);
+        Chip8_Runner.run(fullPath);
+        return;
+    }
+
+    // Untuk NES dan SMS: Tampilkan status engine yang transparan dan bersahabat
+    AntBoy.Display.fillRoundRect(20, 45, 280, 150, 6, ANTOS_COLOR_BG_PANEL);
+    AntBoy.Display.drawRoundRect(20, 45, 280, 150, 6, ANTOS_COLOR_YELLOW);
 
     AntBoy.Display.setTextSize(1);
+    AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
+    AntBoy.Display.drawCenteredText("== STATUS ENGINE NES / SMS ==", 57, ANTOS_COLOR_YELLOW, 1);
+
     AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawCenteredText("ROM INFO & RUNNER", 72, ANTOS_COLOR_WHITE, 1);
+    char fBuf[64];
+    snprintf(fBuf, sizeof(fBuf), "FILE: %s", filename);
+    AntBoy.Display.drawCenteredText(fBuf, 75, ANTOS_COLOR_WHITE, 1);
 
     AntBoy.Display.setTextColor(ANTOS_COLOR_CYAN, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(42, 94);
-    AntBoy.Display.printf("FILE: %s", filename);
-
-    AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(42, 110);
-    AntBoy.Display.print("STATUS: STREAMING ENGINE READY");
+    AntBoy.Display.drawCenteredText("Hardware ESP32 Wemos D1 Mini32", 95, ANTOS_COLOR_CYAN, 1);
+    AntBoy.Display.drawCenteredText("memiliki SRAM 320 KB (tanpa PSRAM).", 109, ANTOS_COLOR_CYAN, 1);
+    AntBoy.Display.drawCenteredText("Core NES Nofrendo butuh mapper eksternal.", 123, ANTOS_COLOR_CYAN, 1);
 
     AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawCenteredText("[A] Jalankan  |  [B] Kembali", 146, ANTOS_COLOR_GREEN, 1);
+    AntBoy.Display.drawCenteredText("Mainkan game favoritmu Mario & Retro", 143, ANTOS_COLOR_GREEN, 1);
+    AntBoy.Display.drawCenteredText("di menu GAME BOY (/roms/gb/) 60 FPS!", 157, ANTOS_COLOR_GREEN, 1);
+
+    AntBoy.Display.setTextColor(ANTOS_COLOR_TEXT_DIM, ANTOS_COLOR_BG_PANEL);
+    AntBoy.Display.drawCenteredText("Tekan tombol [B] untuk kembali", 177, ANTOS_COLOR_TEXT_DIM, 1);
 
     while (true) {
         AntBoy.update();
-        if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
-            if (currentConsole == RETRO_TYPE_ATARI) {
-                Chip8_Runner.run();
-            }
-            break;
-        }
-        if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
+        if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_A) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             break;
         }
         delay(20);

@@ -49,22 +49,8 @@ uint8_t PeanutGB_RunnerClass::romReadCallback(struct gb_s *gb, const uint32_t ad
         return 0x00;
     }
 
-    if (addr < 0x4000) {
-        if (runner->romBank0) return runner->romBank0[addr];
-    } else {
-        uint8_t bank = gb->cart_rom_bank;
-        if (bank == 0) bank = 1;
-        if (runner->curBankN != bank && runner->romBankN && runner->romFile) {
-            runner->curBankN = bank;
-            if (AntBoy.SD.lockBus(100)) {
-                runner->romFile.seek((uint32_t)bank * 0x4000);
-                runner->romFile.read(runner->romBankN, 0x4000);
-                AntBoy.SD.unlockBus();
-            }
-        }
-        if (runner->romBankN) {
-            return runner->romBankN[addr - 0x4000];
-        }
+    if (runner->fullRom && addr < runner->fullRomSize) {
+        return runner->fullRom[addr];
     }
 
     return 0xFF;
@@ -134,7 +120,7 @@ bool PeanutGB_RunnerClass::loadRom(const char* filename) {
 
     if (!AntBoy.SD.lockBus(200)) return false;
 
-    char fullPath[64];
+    char fullPath[128];
     snprintf(fullPath, sizeof(fullPath), "/roms/gb/%s", filename);
     romFile = SD.open(fullPath, FILE_READ);
 
@@ -143,21 +129,62 @@ bool PeanutGB_RunnerClass::loadRom(const char* filename) {
         return false;
     }
 
-    romBank0 = (uint8_t*)malloc(0x4000); // 16KB Bank 0
-    romBankN = (uint8_t*)malloc(0x4000); // 16KB Bank N
+    fullRomSize = romFile.size();
+    size_t freeMem = ESP.getFreeHeap();
 
-    if (!romBank0 || !romBankN) {
-        closeRom();
+    // Pastikan ROM muat dalam RAM dengan menyisakan minimal 40KB heap untuk OS & display
+    if (fullRomSize > (freeMem - 40000)) {
+        romFile.close();
+        AntBoy.SD.unlockBus();
+
+        // Tampilkan pesan dialog jelas di layar agar user tahu batas RAM game
+        AntBoy.Display.fillRoundRect(20, 60, 280, 120, 6, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawRoundRect(20, 60, 280, 120, 6, ANTOS_COLOR_RED);
+        AntBoy.Display.setTextSize(1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_RED, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawCenteredText("ROM MELEBIHI MEMORI RAM!", 74, ANTOS_COLOR_RED, 1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawCenteredText("Game ini membutuhkan memori > 200 KB.", 95, ANTOS_COLOR_WHITE, 1);
+        char szBuf[64];
+        snprintf(szBuf, sizeof(szBuf), "Ukuran ROM: %d KB | Maks RAM: %d KB", (int)(fullRomSize / 1024), (int)((freeMem - 40000) / 1024));
+        AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawCenteredText(szBuf, 114, ANTOS_COLOR_YELLOW, 1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_CYAN, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawCenteredText("Pilih game GB < 200 KB (Mario Land 64KB, dll)", 134, ANTOS_COLOR_CYAN, 1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_TEXT_DIM, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawCenteredText("Tekan tombol [B] untuk kembali", 154, ANTOS_COLOR_TEXT_DIM, 1);
+
+        while (true) {
+            AntBoy.update();
+            if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_A) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
+                break;
+            }
+            delay(20);
+        }
+        return false;
+    }
+
+    fullRom = (uint8_t*)malloc(fullRomSize);
+    if (!fullRom) {
+        romFile.close();
         AntBoy.SD.unlockBus();
         return false;
     }
 
-    romFile.seek(0);
-    romFile.read(romBank0, 0x4000);
-    curBankN = 1;
-    romFile.seek(0x4000);
-    romFile.read(romBankN, 0x4000);
+    // Tampilkan loading dialog
+    AntBoy.Display.fillRoundRect(50, 95, 220, 50, 6, ANTOS_COLOR_BG_PANEL);
+    AntBoy.Display.drawRoundRect(50, 95, 220, 50, 6, ANTOS_COLOR_PIL_GAMING);
+    AntBoy.Display.setTextSize(1);
+    AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
+    AntBoy.Display.drawCenteredText("MEMUAT GAME KE RAM...", 108, ANTOS_COLOR_WHITE, 1);
+    char ldBuf[32];
+    snprintf(ldBuf, sizeof(ldBuf), "%s (%d KB)", filename, (int)(fullRomSize / 1024));
+    AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
+    AntBoy.Display.drawCenteredText(ldBuf, 126, ANTOS_COLOR_YELLOW, 1);
 
+    // Baca ROM utuh ke RAM lalu tutup file SD (Bebaskan bus SPI total untuk ST7789!)
+    romFile.read(fullRom, fullRomSize);
+    romFile.close();
     AntBoy.SD.unlockBus();
     hasRomLoaded = true;
 
@@ -168,17 +195,12 @@ bool PeanutGB_RunnerClass::loadRom(const char* filename) {
 }
 
 void PeanutGB_RunnerClass::closeRom() {
-    if (hasRomLoaded) {
-        if (romFile) {
-            if (AntBoy.SD.lockBus(100)) {
-                romFile.close();
-                AntBoy.SD.unlockBus();
-            }
-        }
-        if (romBank0) { free(romBank0); romBank0 = nullptr; }
-        if (romBankN) { free(romBankN); romBankN = nullptr; }
-        hasRomLoaded = false;
+    if (fullRom) {
+        free(fullRom);
+        fullRom = nullptr;
     }
+    fullRomSize = 0;
+    hasRomLoaded = false;
 }
 
 void PeanutGB_RunnerClass::renderBrowser() {
@@ -402,6 +424,8 @@ void PeanutGB_RunnerClass::runEmulationLoop() {
         uint32_t elapsed = millis() - lastFrame;
         if (elapsed < 16) {
             delay(16 - elapsed);
+        } else {
+            vTaskDelay(1); // Feed FreeRTOS Task Watchdog Timer
         }
         lastFrame = millis();
     }

@@ -70,6 +70,24 @@ void Chip8_RunnerClass::loadBuiltinRom(int gameIdx) {
     }
 }
 
+bool Chip8_RunnerClass::loadRomFromSD(const char* fullPath) {
+    if (!AntBoy.SD.lockBus(200)) return false;
+    File f = SD.open(fullPath, FILE_READ);
+    if (!f) {
+        AntBoy.SD.unlockBus();
+        return false;
+    }
+    reset();
+    size_t sz = f.size();
+    if (sz > (sizeof(memory) - 0x200)) {
+        sz = sizeof(memory) - 0x200;
+    }
+    f.read(memory + 0x200, sz);
+    f.close();
+    AntBoy.SD.unlockBus();
+    return true;
+}
+
 void Chip8_RunnerClass::emulateCycle() {
     uint16_t opcode = (memory[pc] << 8) | memory[pc + 1];
     pc += 2;
@@ -235,8 +253,14 @@ void Chip8_RunnerClass::updateInput() {
     key[0] = AntBoy.Buttons.isPressed(ANT_BTN_SELECT);
 }
 
-void Chip8_RunnerClass::run() {
-    loadBuiltinRom(0);
+void Chip8_RunnerClass::run(const char* romPath) {
+    if (romPath && strlen(romPath) > 0) {
+        if (!loadRomFromSD(romPath)) {
+            loadBuiltinRom(0);
+        }
+    } else {
+        loadBuiltinRom(0);
+    }
 
     AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
 

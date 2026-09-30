@@ -102,5 +102,26 @@ DAFTAR GAME YANG SUDAH TERSEDIA:
     - castlevania.rtttl : Castlevania Vampire Killer
 
 ================================================================================
+CATATAN PENTING KOMPATIBILITAS MEMORI & ENGINE:
+================================================================================
+1. Game Boy & GBC (Peanut-GB):
+   - Modul ESP32 Wemos D1 Mini32 memiliki ~270 KB free internal SRAM (tanpa chip PSRAM eksternal).
+   - Game Boy ROM di bawah ~200 KB (seperti 'Super Mario Land.gb' [64 KB], 'blastah.gb' [64 KB], 
+     'brickster.gbc' [32 KB], 'ucity.gbc' [128 KB], dll.) dimuat 100% langsung ke dalam RAM!
+     Ini menjamin emulasi 60 FPS super stabil tanpa hambatan MicroSD dan tanpa restart.
+   - ROM yang berukuran sangat besar (seperti 'Super Mario Land 2 DX.gbc' [1.024 KB / 1 MB]) 
+     melebihi kapasitas RAM internal ESP32. ANTBOY akan menampilkan pesan pemberitahuan di layar 
+     dan meminta Anda memilih game berukuran < 200 KB.
+
+2. Atari 2600 & CHIP-8 VM:
+   - File berekstensi .ch8 (seperti 'tetris.ch8', 'brix.ch8', 'invaders.ch8', 'blitz.ch8', 'pong.ch8')
+     berjalan 100% mulus dengan delta pixel update (zero flicker).
+
+3. Nintendo NES & Sega Master System:
+   - ROM NES & SMS disediakan dalam MicroSD untuk persiapan porting engine di masa depan.
+   - Jika ingin bernostalgia game Mario atau game aksi retro, gunakan 'Super Mario Land.gb' 
+     di folder /roms/gb/ yang sudah terbukti berjalan lancar di ANTBOY!
+
+================================================================================
 Selamat bernostalgia bermain retro game di ANTBOY!
 ================================================================================

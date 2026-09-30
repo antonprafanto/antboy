@@ -10,15 +10,14 @@ public:
 
 private:
     struct gb_s gb;
-    uint8_t* romBank0 = nullptr;
-    uint8_t* romBankN = nullptr;
-    uint8_t curBankN = 1;
+    uint8_t* fullRom = nullptr;
+    uint32_t fullRomSize = 0;
     File romFile;
     bool hasRomLoaded = false;
     uint8_t currentPalette = 0;
 
     // ROM Browser
-    char romFileList[16][32];
+    char romFileList[16][64];
     uint32_t romFileSizes[16];
     int romCount = 0;
     int selectedRomIndex = 0;
