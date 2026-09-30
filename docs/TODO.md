@@ -11,8 +11,8 @@
 ## 📌 Quick Status Overview
 - [x] **Fase 0: Hardware Bring-Up & Validasi Jalur** (100% Selesai)
 - [x] **Fase 1: AntBoy-Core SDK & HAL (Hardware Abstraction Layer)** (100% Selesai & Terverifikasi di Hardware)
-- [ ] **Fase 2: AntOS Launcher & UI Engine (320x240 Landscape)** (Ready to Start)
-- [ ] **Fase 3: Pilar 1 — Retro Gaming & Entertainment**
+- [x] **Fase 2: AntOS Launcher & UI Engine (320x240 Landscape)** (100% Selesai & Terverifikasi di Hardware)
+- [ ] **Fase 3: Pilar 1 — Retro Gaming & Entertainment** (Ready to Start)
 - [ ] **Fase 4: Pilar 2 — Wireless & Cyber-Tool**
 - [ ] **Fase 5: Pilar 3 — IoT & Smart Home Pocket Controller**
 - [ ] **Fase 6: Pilar 4 — Hardware Hacker & Lab Companion (Header J4)**
@@ -64,22 +64,22 @@
 
 ---
 
-### FASE 2: AntOS Launcher & UI Engine
+### FASE 2: AntOS Launcher & UI Engine — [SELESAI / VERIFIED]
 *Fokus: Antarmuka sistem operasi retro-futuristik dengan navigasi carousel menu.*
-- [ ] **AntOS Bootloader Sequence**:
-  - [ ] Animasi Splash Screen logo ANTBOY dengan jingle audio boot.
-  - [ ] Pengecekan kartu SD otomatis saat booting (mount check).
-- [ ] **Carousel Tile Launcher (Menu Utama)**:
-  - [ ] Menu geser horizontal menampilkan 4 pilar fitur: Gaming, Wireless, IoT, Lab Companion.
-  - [ ] Animasi transisi tile halus pada target 40–60 FPS.
-- [ ] **Top Status Bar & OSD**:
-  - [ ] Indikator status Wi-Fi / Bluetooth.
-  - [ ] OSD volume popup saat tombol `VOL` ditekan.
-  - [ ] Indikator status MicroSD terpasang/tidak.
-- [ ] **Menu Quick Settings**:
-  - [ ] Pengaturan tingkat kecerahan layar (20% – 100%).
-  - [ ] Pengaturan volume suara (Mute s.d. Max).
-  - [ ] Penyimpanan konfigurasi ke Flash NVS (`settings.json`).
+- [x] **AntOS Bootloader Sequence**:
+  - [x] Animasi Splash Screen logo ANTBOY dengan jingle audio boot.
+  - [x] Pengecekan kartu SD otomatis saat booting (mount check).
+- [x] **Carousel Tile Launcher (Menu Utama)**:
+  - [x] Menu geser horizontal menampilkan 4 pilar fitur: Gaming, Wireless, IoT, Lab Companion.
+  - [x] Animasi transisi tile halus pada target 40–60 FPS.
+- [x] **Top Status Bar & OSD**:
+  - [x] Indikator status Wi-Fi / Bluetooth.
+  - [x] OSD volume popup saat tombol `VOL` ditekan.
+  - [x] Indikator status MicroSD terpasang/tidak.
+- [x] **Menu Quick Settings**:
+  - [x] Pengaturan tingkat kecerahan layar (20% – 100%).
+  - [x] Pengaturan volume suara (Mute s.d. Max).
+  - [x] Penyimpanan konfigurasi ke Flash NVS (`settings.json`).
 
 ---
 
