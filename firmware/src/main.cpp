@@ -1,329 +1,186 @@
 #include <Arduino.h>
-#include <SPI.h>
-#include <Adafruit_GFX.h>
+#include <AntBoy.h>
 
-// =========================================================================
-// PILIHAN DRIVER LCD (PILIH SALAH SATU SESUAI MODUL LCD YANG TERPASANG)
-// =========================================================================
-#define USE_ILI9341      0  // Standar konsol retro 2.4" / 2.8"
-#define USE_ST7789       1  // Aktifkan karena modul terdeteksi IC:ST7789 2.0" 240x320
-#define USE_ST7735       0  // Aktifkan jika LCD menggunakan modul ST7735
-
-#if USE_ILI9341
-  #include <Adafruit_ILI9341.h>
-#elif USE_ST7789 || USE_ST7735
-  #include <Adafruit_ST7789.h>
-#endif
-
-// =========================================================================
-// PINOUT HARDWARE ANTBOY (SESUAI SKEMATIK & PCB KICAD)
-// =========================================================================
-#define TFT_MOSI         23  // SPI MOSI / SDA
-#define TFT_SCLK         18  // SPI SCK / SCL
-#define TFT_CS            5  // Chip Select
-#define TFT_DC           21  // Data / Command
-#define TFT_RST          -1  // Terhubung ke hardware reset ESP32 (-1 = tidak dikontrol GPIO)
-#define TFT_BACKLIGHT    14  // Wajib HIGH agar lampu layar menyala!
-
-#define BUZZER_PIN       26  // DAC2 / Buzzer
-#define LED_PIN           2  // LED Hijau D1
-
-// Tombol Digital (Active-LOW)
-#define BTN_A            33
-#define BTN_B            32
-#define BTN_SELECT       27
-#define BTN_START        39  // VN (Input Only, mengandalkan pullup R9 10k)
-#define BTN_MENU         13
-#define BTN_VOL           0  // IO0 (Pullup R3 10k)
-
-// Tombol D-Pad Analog (Pembagi Tegangan Resistor)
-#define DPAD_VERT_PIN    35  // UP & DOWN
-#define DPAD_HORZ_PIN    34  // LEFT & RIGHT
-
-// =========================================================================
-// INISIALISASI OBJEK DISPLAY
-// =========================================================================
-#if USE_ILI9341
-  Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC, TFT_RST);
-  #define COLOR_BLACK       ILI9341_BLACK
-  #define COLOR_WHITE       ILI9341_WHITE
-  #define COLOR_RED         ILI9341_RED
-  #define COLOR_GREEN       ILI9341_GREEN
-  #define COLOR_BLUE        ILI9341_BLUE
-  #define COLOR_CYAN        ILI9341_CYAN
-  #define COLOR_MAGENTA     ILI9341_MAGENTA
-  #define COLOR_YELLOW      ILI9341_YELLOW
-  #define COLOR_DARKGREY    ILI9341_DARKGREY
-  #define COLOR_NAVY        ILI9341_NAVY
-  #define COLOR_DARKGREEN   ILI9341_DARKGREEN
-#else
-  Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-  #define COLOR_BLACK       ST77XX_BLACK
-  #define COLOR_WHITE       ST77XX_WHITE
-  #define COLOR_RED         ST77XX_RED
-  #define COLOR_GREEN       ST77XX_GREEN
-  #define COLOR_BLUE        ST77XX_BLUE
-  #define COLOR_CYAN        ST77XX_CYAN
-  #define COLOR_MAGENTA     ST77XX_MAGENTA
-  #define COLOR_YELLOW      ST77XX_YELLOW
-  #define COLOR_DARKGREY    0x7BEF
-  #define COLOR_NAVY        0x000F
-  #define COLOR_DARKGREEN   0x03E0
-#endif
-
-// Resolusi Layar Standar (Landscape 320x240)
-const int SCREEN_W = 320;
-const int SCREEN_H = 240;
-
-// State Karakter / Sprite yang dikontrol
-int spriteX = 80;
-int spriteY = 95;
-int prevSpriteX = spriteX;
-int prevSpriteY = spriteY;
-const int spriteSize = 14;
-uint16_t spriteColor = COLOR_YELLOW;
-
-// Fungsi audio buzzer sederhana
-void playTone(int freq, int durationMs) {
-  #if ESP_IDF_VERSION_MAJOR >= 5
-    // ESP32 Arduino Core 3.x
-    tone(BUZZER_PIN, freq, durationMs);
-  #else
-    // Legacy support
-    tone(BUZZER_PIN, freq, durationMs);
-  #endif
-}
-
-void playStartupMelody() {
-  // Melodi boot jingle frekuensi tinggi pada rentang resonansi piezo (1.7 kHz - 3.1 kHz)
-  playTone(1760, 70); delay(85);  // A6
-  playTone(2093, 70); delay(85);  // C7
-  playTone(2637, 90); delay(105); // E7
-  playTone(3136, 180); delay(200); // G7 (Coin jingle - nada puncak resonansi)
-}
+// Deklarasi fungsi rendering UI
+void drawDashboardBase();
+void updateButtonStates();
+void showVolumeToast(const char* volStr);
 
 void setup() {
-  Serial.begin(115200);
-  delay(200);
-  Serial.println("\n=================================");
-  Serial.println("  ANTBOY (2026) - Hardware Test  ");
-  Serial.println("=================================");
+    Serial.begin(115200);
+    Serial.println("\n=============================================");
+    Serial.println("  ANTBOY (2026) — AntBoy-Core SDK Bring-Up");
+    Serial.println("  Hardware: Anton Prafanto | Firmware: AntOS");
+    Serial.println("=============================================\n");
 
-  // 1. Hidupkan Lampu Latar (Backlight) & Indikator
-  pinMode(TFT_BACKLIGHT, OUTPUT);
-  digitalWrite(TFT_BACKLIGHT, HIGH); // Sangat penting! Layar gelap tanpa ini.
-  Serial.println("[OK] Backlight ON (GPIO 14)");
+    // Inisialisasi seluruh subsistem AntBoy (Layar, Tombol, Buzzer, SD, LED)
+    AntBoy.begin(true);
 
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW);
+    // Mainkan Boot Jingle Frekuensi Resonan
+    AntBoy.Audio.playStartupJingle();
 
-  pinMode(BUZZER_PIN, OUTPUT);
-
-  // 2. Setup Tombol Digital
-  pinMode(BTN_A, INPUT_PULLUP);
-  pinMode(BTN_B, INPUT_PULLUP);
-  pinMode(BTN_SELECT, INPUT_PULLUP);
-  pinMode(BTN_MENU, INPUT_PULLUP);
-  pinMode(BTN_VOL, INPUT_PULLUP);
-  pinMode(BTN_START, INPUT); // Pin 39 (VN) tidak memiliki internal pullup
-
-  // 3. Setup ADC D-Pad
-  pinMode(DPAD_VERT_PIN, INPUT);
-  pinMode(DPAD_HORZ_PIN, INPUT);
-  analogReadResolution(12);
-
-  // 4. Inisialisasi Layar
-  #if USE_ILI9341
-    tft.begin();
-    tft.setRotation(3); // 3 = Landscape (320x240)
-  #elif USE_ST7789
-    tft.init(240, 320);
-    tft.setRotation(3); // 3 = Landscape (320x240, header di atas, menghadap tombol di bawah)
-    tft.invertDisplay(true); // Wajib true untuk modul ST7789 IPS agar warna tidak terbalik
-  #elif USE_ST7735
-    tft.initR(INITR_BLACKTAB);
-    tft.setRotation(3);
-  #endif
-
-  tft.fillScreen(COLOR_BLACK);
-  Serial.println("[OK] Display Initialized (Landscape 320x240)");
-
-  // Render Header UI (Landscape)
-  tft.fillRect(0, 0, SCREEN_W, 26, COLOR_NAVY);
-  tft.drawFastHLine(0, 26, SCREEN_W, COLOR_CYAN);
-  tft.setTextColor(COLOR_WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(10, 6);
-  tft.print("ANTBOY (2026)");
-  tft.setTextSize(1);
-  tft.setTextColor(COLOR_CYAN);
-  tft.setCursor(205, 10);
-  tft.print("Hardware Test");
-
-  // Area arena kontrol di sisi kiri
-  tft.drawRect(6, 32, 150, 126, COLOR_DARKGREY);
-  tft.setTextColor(COLOR_DARKGREY);
-  tft.setTextSize(1);
-  tft.setCursor(12, 36);
-  tft.print("Sprite Arena");
-
-  // Garis pemisah bawah
-  tft.drawFastHLine(0, 164, SCREEN_W, COLOR_DARKGREY);
-
-  // Suara Startup
-  playStartupMelody();
+    // Gambar Tampilan Awal Dashboard
+    drawDashboardBase();
 }
 
 void loop() {
-  // =========================================================================
-  // 1. PEMBACAAN TOMBOL DIGITAL
-  // =========================================================================
-  bool pressA      = (digitalRead(BTN_A) == LOW);
-  bool pressB      = (digitalRead(BTN_B) == LOW);
-  bool pressSelect = (digitalRead(BTN_SELECT) == LOW);
-  bool pressStart  = (digitalRead(BTN_START) == LOW);
-  bool pressMenu   = (digitalRead(BTN_MENU) == LOW);
-  bool pressVol    = (digitalRead(BTN_VOL) == LOW);
+    // 1. Polling Input Tombol & D-Pad
+    AntBoy.update();
 
-  // =========================================================================
-  // 2. PEMBACAAN D-PAD ANALOG (ADC 12-BIT: 0 - 4095)
-  // =========================================================================
-  int adcVert = analogRead(DPAD_VERT_PIN); // IO35: UP / DOWN
-  int adcHorz = analogRead(DPAD_HORZ_PIN); // IO34: LEFT / RIGHT
+    // 2. Tangani Tombol VOL (Siklus Volume Suara)
+    if (AntBoy.Buttons.wasPressed(ANT_BTN_VOL)) {
+        AntVolumeLevel newVol = AntBoy.Audio.cycleVolume();
+        showVolumeToast(AntBoy.Audio.getVolumeString());
+    }
 
-  // Ambang batas tegangan pembagi resistor 10k / 10k:
-  // - Nilai default (idle / terbuka)   : < 600
-  // - Nilai tegangan tengah (~1.65V)   : 1200 s/d 2800
-  // - Nilai tegangan penuh (3.3V)      : > 3100
-  bool pressUp    = (adcVert > 3000);
-  bool pressDown  = (adcVert >= 1000 && adcVert <= 2900);
-  bool pressLeft  = (adcHorz > 3000);
-  bool pressRight = (adcHorz >= 1000 && adcHorz <= 2900);
+    // 3. Tangani Tombol MENU (Toggle Status LED & Beep)
+    if (AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
+        AntBoy.toggleLED();
+        AntBoy.Audio.playConfirm();
+    }
 
-  bool anyInput = pressA || pressB || pressSelect || pressStart || 
-                  pressMenu || pressVol || pressUp || pressDown || 
-                  pressLeft || pressRight;
+    // 4. Deteksi Global Shortcut (Tahan SELECT + START selama 2 detik)
+    if (AntBoy.checkExitShortcut()) {
+        AntBoy.Display.fillRect(40, 90, 240, 60, ANTBOY_COLOR_RED);
+        AntBoy.Display.drawRect(38, 88, 244, 64, ANTBOY_COLOR_WHITE);
+        AntBoy.Display.drawCenteredText("GLOBAL SHORTCUT!", 105, ANTBOY_COLOR_WHITE, 2);
+        AntBoy.Display.drawCenteredText("SELECT + START DETECTED", 130, ANTBOY_COLOR_YELLOW, 1);
+        AntBoy.Audio.playWarning();
+        delay(1500);
+        drawDashboardBase();
+    }
 
-  // Indikator LED menyala jika ada tombol aktif
-  digitalWrite(LED_PIN, anyInput ? HIGH : LOW);
+    // 5. Update Status Visual Seluruh 10 Tombol di Layar
+    updateButtonStates();
 
-  // =========================================================================
-  // 3. LOGIKA GERAKAN SPRITE (ARENA BOUNDARIES)
-  // =========================================================================
-  int moveSpeed = 4;
-  prevSpriteX = spriteX;
-  prevSpriteY = spriteY;
+    delay(15); // Loop rate ~60 Hz
+}
 
-  if (pressUp && spriteY > 48) {
-    spriteY -= moveSpeed;
-  }
-  if (pressDown && spriteY < 144) {
-    spriteY += moveSpeed;
-  }
-  if (pressLeft && spriteX > 18) {
-    spriteX -= moveSpeed;
-  }
-  if (pressRight && spriteX < 144) {
-    spriteX += moveSpeed;
-  }
+// -------------------------------------------------------------------------
+// RENDERING GRAFIS DASHBOARD
+// -------------------------------------------------------------------------
 
-  // Efek tombol A, B, dan tombol fungsi dengan frekuensi resonansi piezo (1.7 - 2.85 kHz)
-  if (pressA) {
-    spriteColor = COLOR_RED;
-    playTone(2400, 45); // Nada A (2.4 kHz frekuensi resonansi tajam)
-  } else if (pressB) {
-    spriteColor = COLOR_CYAN;
-    playTone(2850, 45); // Nada B (2.85 kHz laser chime)
-  } else if (pressStart) {
-    playTone(2093, 40); // START: 2.1 kHz
-  } else if (pressSelect) {
-    playTone(1975, 40); // SELECT: 1.97 kHz
-  } else if (pressMenu) {
-    playTone(1760, 35); // MENU: 1.76 kHz
-  } else if (pressVol) {
-    playTone(2349, 35); // VOL: 2.35 kHz
-  } else {
-    spriteColor = COLOR_YELLOW;
-  }
+void drawDashboardBase() {
+    AntBoy.Display.fillScreen(ANTBOY_COLOR_BLACK);
 
-  // Render ulang sprite hanya jika ada perpindahan posisi atau aksi
-  if (prevSpriteX != spriteX || prevSpriteY != spriteY || pressA || pressB) {
-    // Hapus posisi lama
-    tft.fillRect(prevSpriteX - spriteSize / 2, prevSpriteY - spriteSize / 2, spriteSize, spriteSize, COLOR_BLACK);
-    // Gambar di posisi baru
-    tft.fillRect(spriteX - spriteSize / 2, spriteY - spriteSize / 2, spriteSize, spriteSize, spriteColor);
-    tft.drawRect(spriteX - spriteSize / 2, spriteY - spriteSize / 2, spriteSize, spriteSize, COLOR_WHITE);
-  }
+    // Header Bar
+    AntBoy.Display.drawHeaderBar("ANTBOY (2026) — Core SDK v1.0", ANTBOY_COLOR_NAVY);
 
-  // =========================================================================
-  // 4. VISUALISASI STATUS CONTROLLER (GAMEPAD HUD - SISI KANAN)
-  // =========================================================================
-  tft.setTextColor(COLOR_DARKGREY, COLOR_BLACK);
-  tft.setTextSize(1);
-  tft.setCursor(168, 36);
-  tft.print("Virtual Controller:");
+    // Info Sub-Header: Status SD Card & Volume
+    char statusBuf[64];
+    const char* sdStatus = AntBoy.SD.isMounted() ? AntBoy.SD.cardTypeString() : "No Card";
+    snprintf(statusBuf, sizeof(statusBuf), "SD: %s | Vol: %s | Core: 240MHz", sdStatus, AntBoy.Audio.getVolumeString());
+    
+    AntBoy.Display.setTextSize(1);
+    AntBoy.Display.setTextColor(ANTBOY_COLOR_CYAN, ANTBOY_COLOR_BLACK);
+    AntBoy.Display.setCursor(10, 28);
+    AntBoy.Display.print(statusBuf);
 
-  // Kotak Virtual D-Pad
-  int dpadCX = 202;
-  int dpadCY = 76;
-  tft.fillRect(dpadCX - 18, dpadCY - 6, 14, 12, pressLeft  ? COLOR_GREEN : COLOR_DARKGREY);
-  tft.fillRect(dpadCX + 4,  dpadCY - 6, 14, 12, pressRight ? COLOR_GREEN : COLOR_DARKGREY);
-  tft.fillRect(dpadCX - 6,  dpadCY - 18, 12, 14, pressUp    ? COLOR_GREEN : COLOR_DARKGREY);
-  tft.fillRect(dpadCX - 6,  dpadCY + 4,  12, 14, pressDown  ? COLOR_GREEN : COLOR_DARKGREY);
+    // Garis Pemisah
+    AntBoy.Display.drawFastHLine(10, 40, 300, ANTBOY_COLOR_DARKGREY);
 
-  // Tombol Virtual A & B
-  tft.fillCircle(256, 80, 9, pressB ? COLOR_BLUE : COLOR_DARKGREY);
-  tft.fillCircle(286, 68, 9, pressA ? COLOR_RED  : COLOR_DARKGREY);
-  tft.setTextColor(COLOR_WHITE);
-  tft.setCursor(253, 76); tft.print("B");
-  tft.setCursor(283, 64); tft.print("A");
+    // Kotak Visualizer D-Pad & Tombol
+    AntBoy.Display.drawRoundRect(15, 48, 140, 150, 6, ANTBOY_COLOR_DARKGREY);
+    AntBoy.Display.drawCenteredText("D-PAD & ARROW", 54, ANTBOY_COLOR_LIGHTGREY, 1);
 
-  // Tombol Virtual Kontrol (MENU, VOL, SELECT, START)
-  int btnY = 118;
-  tft.fillRect(166, btnY, 32, 10, pressMenu   ? COLOR_MAGENTA : COLOR_DARKGREY);
-  tft.fillRect(202, btnY, 32, 10, pressVol    ? COLOR_MAGENTA : COLOR_DARKGREY);
-  tft.fillRect(238, btnY, 34, 10, pressSelect ? COLOR_YELLOW  : COLOR_DARKGREY);
-  tft.fillRect(276, btnY, 34, 10, pressStart  ? COLOR_YELLOW  : COLOR_DARKGREY);
+    AntBoy.Display.drawRoundRect(165, 48, 140, 150, 6, ANTBOY_COLOR_DARKGREY);
+    AntBoy.Display.drawCenteredText("ACTION & FUNC", 54, ANTBOY_COLOR_LIGHTGREY, 1);
 
-  tft.setTextColor(COLOR_WHITE, COLOR_BLACK);
-  tft.setCursor(172, btnY + 12); tft.print("MEN");
-  tft.setCursor(208, btnY + 12); tft.print("VOL");
-  tft.setCursor(244, btnY + 12); tft.print("SEL");
-  tft.setCursor(282, btnY + 12); tft.print("STA");
+    // Footer Bar
+    AntBoy.Display.drawFooterBar("Tekan tombol untuk uji visual | s.id/antonprafanto", ANTBOY_COLOR_DARKGREY);
+}
 
-  // =========================================================================
-  // 5. LIVE TELEMETRY & DEBUG VALUES (SISI BAWAH)
-  // =========================================================================
-  tft.setTextColor(COLOR_WHITE, COLOR_BLACK);
-  tft.setCursor(8, 172);
-  tft.printf("ADC IO35 (UP/DN): %4d   |   IO34 (LF/RT): %4d  ", adcVert, adcHorz);
+void updateButtonStates() {
+    // -------------------------------------------------------------
+    // 1. Visualisasi D-Pad (Sisi Kiri)
+    // -------------------------------------------------------------
+    // UP (X: 73, Y: 72)
+    uint16_t colUp = AntBoy.Buttons.isPressed(ANT_BTN_UP) ? ANTBOY_COLOR_GREEN : ANTBOY_COLOR_DARKGREY;
+    AntBoy.Display.fillRoundRect(73, 72, 24, 24, 4, colUp);
+    AntBoy.Display.drawCenteredText("^", 79, ANTBOY_COLOR_WHITE, 1);
 
-  tft.setCursor(8, 192);
-  tft.print("D-PAD: ");
-  tft.setTextColor(COLOR_GREEN, COLOR_BLACK);
-  if (pressUp)         tft.print("[UP]    ");
-  else if (pressDown)  tft.print("[DOWN]  ");
-  else if (pressLeft)  tft.print("[LEFT]  ");
-  else if (pressRight) tft.print("[RIGHT] ");
-  else                 tft.print("[CENTER]");
+    // DOWN (X: 73, Y: 128)
+    uint16_t colDown = AntBoy.Buttons.isPressed(ANT_BTN_DOWN) ? ANTBOY_COLOR_GREEN : ANTBOY_COLOR_DARKGREY;
+    AntBoy.Display.fillRoundRect(73, 128, 24, 24, 4, colDown);
+    AntBoy.Display.drawCenteredText("v", 135, ANTBOY_COLOR_WHITE, 1);
 
-  tft.setCursor(160, 192);
-  tft.setTextColor(COLOR_WHITE, COLOR_BLACK);
-  tft.print("STATUS: ");
-  tft.setTextColor(anyInput ? COLOR_YELLOW : COLOR_DARKGREY, COLOR_BLACK);
-  tft.printf("%-14s", anyInput ? "ACTIVE" : "IDLE");
+    // LEFT (X: 45, Y: 100)
+    uint16_t colLeft = AntBoy.Buttons.isPressed(ANT_BTN_LEFT) ? ANTBOY_COLOR_GREEN : ANTBOY_COLOR_DARKGREY;
+    AntBoy.Display.fillRoundRect(45, 100, 24, 24, 4, colLeft);
+    AntBoy.Display.drawCenteredText("<", 107, ANTBOY_COLOR_WHITE, 1);
 
-  tft.setCursor(8, 212);
-  tft.setTextColor(COLOR_CYAN, COLOR_BLACK);
-  tft.print("KEYS: ");
-  if (pressA)      tft.print("A ");
-  if (pressB)      tft.print("B ");
-  if (pressSelect) tft.print("SEL ");
-  if (pressStart)  tft.print("START ");
-  if (pressMenu)   tft.print("MENU ");
-  if (pressVol)    tft.print("VOL ");
-  if (!anyInput)   tft.print("-                   ");
-  else             tft.print("                    ");
+    // RIGHT (X: 101, Y: 100)
+    uint16_t colRight = AntBoy.Buttons.isPressed(ANT_BTN_RIGHT) ? ANTBOY_COLOR_GREEN : ANTBOY_COLOR_DARKGREY;
+    AntBoy.Display.fillRoundRect(101, 100, 24, 24, 4, colRight);
+    AntBoy.Display.drawCenteredText(">", 107, ANTBOY_COLOR_WHITE, 1);
 
-  delay(25); // Refresh rate ~40 FPS
+    // Tampilkan ADC D-Pad Real-time di bawah D-Pad
+    char adcBuf[32];
+    snprintf(adcBuf, sizeof(adcBuf), "V:%04d H:%04d", AntBoy.Buttons.getADC_Vertical(), AntBoy.Buttons.getADC_Horizontal());
+    AntBoy.Display.fillRect(25, 165, 120, 12, ANTBOY_COLOR_BLACK);
+    AntBoy.Display.setTextSize(1);
+    AntBoy.Display.setTextColor(ANTBOY_COLOR_LIGHTGREY, ANTBOY_COLOR_BLACK);
+    AntBoy.Display.setCursor(25, 165);
+    AntBoy.Display.print(adcBuf);
+
+    // -------------------------------------------------------------
+    // 2. Visualisasi Tombol Fungsi & Action (Sisi Kanan)
+    // -------------------------------------------------------------
+    // Baris Fungsi: START, SELECT, VOL, MENU
+    uint16_t colSta = AntBoy.Buttons.isPressed(ANT_BTN_START)  ? ANTBOY_COLOR_YELLOW : ANTBOY_COLOR_DARKGREY;
+    uint16_t colSel = AntBoy.Buttons.isPressed(ANT_BTN_SELECT) ? ANTBOY_COLOR_YELLOW : ANTBOY_COLOR_DARKGREY;
+    uint16_t colVol = AntBoy.Buttons.isPressed(ANT_BTN_VOL)    ? ANTBOY_COLOR_CYAN   : ANTBOY_COLOR_DARKGREY;
+    uint16_t colMen = AntBoy.Buttons.isPressed(ANT_BTN_MENU)   ? ANTBOY_COLOR_MAGENTA: ANTBOY_COLOR_DARKGREY;
+
+    AntBoy.Display.fillRoundRect(175, 75, 26, 16, 3, colSta);
+    AntBoy.Display.setTextSize(1);
+    AntBoy.Display.setTextColor(ANTBOY_COLOR_BLACK);
+    AntBoy.Display.setCursor(178, 79);
+    AntBoy.Display.print("STA");
+
+    AntBoy.Display.fillRoundRect(207, 75, 26, 16, 3, colSel);
+    AntBoy.Display.setCursor(210, 79);
+    AntBoy.Display.print("SEL");
+
+    AntBoy.Display.fillRoundRect(239, 75, 26, 16, 3, colVol);
+    AntBoy.Display.setCursor(242, 79);
+    AntBoy.Display.print("VOL");
+
+    AntBoy.Display.fillRoundRect(271, 75, 26, 16, 3, colMen);
+    AntBoy.Display.setCursor(274, 79);
+    AntBoy.Display.print("MEN");
+
+    // Tombol Action: A & B
+    // A (Atas Kanan: 260, 115)
+    uint16_t colA = AntBoy.Buttons.isPressed(ANT_BTN_A) ? ANTBOY_COLOR_RED : ANTBOY_COLOR_DARKGREY;
+    AntBoy.Display.fillCircle(270, 125, 14, colA);
+    AntBoy.Display.setTextColor(ANTBOY_COLOR_WHITE);
+    AntBoy.Display.setCursor(267, 121);
+    AntBoy.Display.print("A");
+
+    // B (Bawah Kiri dari A: 220, 145)
+    uint16_t colB = AntBoy.Buttons.isPressed(ANT_BTN_B) ? ANTBOY_COLOR_YELLOW : ANTBOY_COLOR_DARKGREY;
+    AntBoy.Display.fillCircle(230, 150, 14, colB);
+    AntBoy.Display.setTextColor(ANTBOY_COLOR_BLACK);
+    AntBoy.Display.setCursor(227, 146);
+    AntBoy.Display.print("B");
+
+    // Suara feedback klik saat tombol A atau B ditekan
+    if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
+        AntBoy.Audio.playTone(2637, 30);
+    }
+    if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+        AntBoy.Audio.playTone(2093, 30);
+    }
+}
+
+void showVolumeToast(const char* volStr) {
+    AntBoy.Display.fillRoundRect(80, 100, 160, 40, 8, ANTBOY_COLOR_NAVY);
+    AntBoy.Display.drawRoundRect(78, 98, 164, 44, 8, ANTBOY_COLOR_CYAN);
+    
+    char buf[32];
+    snprintf(buf, sizeof(buf), "VOLUME: %s", volStr);
+    AntBoy.Display.drawCenteredText(buf, 114, ANTBOY_COLOR_WHITE, 1);
+    delay(400);
+    drawDashboardBase();
 }
