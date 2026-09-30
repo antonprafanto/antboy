@@ -22,6 +22,9 @@ void AntBoyClass::begin(bool initSD) {
     // 4. Inisialisasi Layar ST7789 Landscape 320x240
     Display.begin();
 
+    // 5. Inisialisasi Pin Bebas Header Ekspansi J4 (IO4, IO16, IO25)
+    Header.begin();
+
     // 5. Inisialisasi MicroSD jika diminta
     if (initSD) {
         if (SD.begin()) {

@@ -42,6 +42,8 @@ public:
     // Nilai analog terfilter untuk kalibrasi / diagnostik
     int getADC_Vertical() const { return _lastAdcVert; }
     int getADC_Horizontal() const { return _lastAdcHorz; }
+    int getADC_V() const { return _lastAdcVert; }
+    int getADC_H() const { return _lastAdcHorz; }
 
     // Deteksi kombinasi shortcut tahan (misal SELECT + START selama N ms)
     bool isHoldingCombo(AntButton btn1, AntButton btn2, uint32_t holdTimeMs) const;

@@ -32,6 +32,9 @@ public:
     void playConfirm();
     void playWarning();
 
+    // Pemutar format melodi universal RTTTL (Ring Tone Text Transfer Language)
+    void playRTTTL(const char* tune);
+
 private:
     AntVolumeLevel _volumeLevel = ANT_VOL_HIGH;
     uint8_t _ledcChannel = 2;

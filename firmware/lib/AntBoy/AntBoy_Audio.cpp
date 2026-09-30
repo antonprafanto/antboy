@@ -98,3 +98,100 @@ void AntBoy_AudioClass::playWarning() {
     playTone(1046, 90); delay(20);
     playTone(880, 140);
 }
+
+void AntBoy_AudioClass::playRTTTL(const char* p) {
+    if (_volumeLevel == ANT_VOL_MUTE || p == nullptr) return;
+
+    const uint16_t notes[] = { 262, 277, 294, 311, 330, 349, 370, 392, 415, 440, 466, 494 };
+
+    // 1. Lewati judul lagu hingga titik dua pertama ':'
+    while (*p && *p != ':') p++;
+    if (!*p) return;
+    p++;
+
+    // 2. Parse default settings (d=4,o=5,b=140)
+    int default_dur = 4;
+    int default_oct = 5;
+    int bpm = 120;
+
+    while (*p && *p != ':') {
+        if (*p == 'd') {
+            p += 2;
+            default_dur = 0;
+            while (isdigit(*p)) default_dur = default_dur * 10 + (*p++ - '0');
+        } else if (*p == 'o') {
+            p += 2;
+            default_oct = *p++ - '0';
+        } else if (*p == 'b') {
+            p += 2;
+            bpm = 0;
+            while (isdigit(*p)) bpm = bpm * 10 + (*p++ - '0');
+        } else {
+            p++;
+        }
+    }
+    if (!*p) return;
+    p++;
+
+    if (bpm <= 0) bpm = 120;
+    long wholenote = (60000L * 4) / bpm;
+
+    // 3. Mainkan rangkaian nada
+    while (*p) {
+        while (*p == ',' || *p == ' ') p++;
+        if (!*p) break;
+
+        int dur = 0;
+        while (isdigit(*p)) dur = dur * 10 + (*p++ - '0');
+        if (dur == 0) dur = default_dur;
+
+        char note = *p++;
+        int note_idx = -1;
+        bool is_pause = false;
+
+        switch (note) {
+            case 'c': note_idx = 0; break;
+            case 'd': note_idx = 2; break;
+            case 'e': note_idx = 4; break;
+            case 'f': note_idx = 5; break;
+            case 'g': note_idx = 7; break;
+            case 'a': note_idx = 9; break;
+            case 'b': note_idx = 11; break;
+            case 'p': is_pause = true; break;
+            default: break;
+        }
+
+        if (*p == '#') {
+            p++;
+            if (note_idx >= 0) note_idx++;
+        }
+
+        bool dotted = false;
+        if (*p == '.') {
+            dotted = true;
+            p++;
+        }
+
+        int oct = default_oct;
+        if (isdigit(*p)) oct = *p++ - '0';
+
+        if (*p == '.') {
+            dotted = true;
+            p++;
+        }
+
+        long duration = wholenote / dur;
+        if (dotted) duration += (duration / 2);
+
+        if (is_pause || note_idx < 0) {
+            stopTone();
+            delay(duration);
+        } else {
+            int shift = oct - 4;
+            uint16_t freq = (shift >= 0) ? (notes[note_idx] << shift) : (notes[note_idx] >> (-shift));
+            playTone(freq, (uint16_t)(duration * 0.85));
+            delay((uint16_t)(duration * 0.15));
+        }
+    }
+    stopTone();
+}

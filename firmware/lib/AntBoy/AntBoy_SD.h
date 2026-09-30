@@ -23,6 +23,8 @@ public:
     String readFile(const char* path);
     bool writeFile(const char* path, const char* message);
     bool appendFile(const char* path, const char* message);
+    String readString(const char* path) { return readFile(path); }
+    bool writeLog(const char* path, const char* data) { return appendFile(path, data); }
 
     // Mutex Arbitrasi Bus SPI (Berbagi jalur dengan Layar ST7789)
     bool lockBus(uint32_t timeoutMs = 100);

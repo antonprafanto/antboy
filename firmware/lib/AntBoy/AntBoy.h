@@ -6,6 +6,7 @@
 #include "AntBoy_Audio.h"
 #include "AntBoy_SD.h"
 #include "AntBoy_Power.h"
+#include "AntBoy_Header.h"
 
 class AntBoyClass {
 public:
@@ -14,6 +15,7 @@ public:
     AntBoy_AudioClass   Audio;
     AntBoy_SDClass      SD;
     AntBoy_PowerClass   Power;
+    AntBoy_HeaderClass  Header;
 
     // Inisialisasi seluruh sistem ANTBOY
     void begin(bool initSD = true);
