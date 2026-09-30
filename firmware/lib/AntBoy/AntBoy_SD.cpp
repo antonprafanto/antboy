@@ -76,6 +76,56 @@ bool AntBoy_SDClass::createStandardDirectories() {
     return true;
 }
 
+bool AntBoy_SDClass::exists(const char* path) {
+    if (!_isMounted) return false;
+    if (!lockBus(100)) return false;
+    bool res = SD.exists(path);
+    unlockBus();
+    return res;
+}
+
+String AntBoy_SDClass::readFile(const char* path) {
+    if (!_isMounted) return String();
+    if (!lockBus(200)) return String();
+    File f = SD.open(path, FILE_READ);
+    if (!f) {
+        unlockBus();
+        return String();
+    }
+    String content = f.readString();
+    f.close();
+    unlockBus();
+    return content;
+}
+
+bool AntBoy_SDClass::writeFile(const char* path, const char* message) {
+    if (!_isMounted) return false;
+    if (!lockBus(200)) return false;
+    File f = SD.open(path, FILE_WRITE);
+    if (!f) {
+        unlockBus();
+        return false;
+    }
+    size_t written = f.print(message);
+    f.close();
+    unlockBus();
+    return written > 0;
+}
+
+bool AntBoy_SDClass::appendFile(const char* path, const char* message) {
+    if (!_isMounted) return false;
+    if (!lockBus(200)) return false;
+    File f = SD.open(path, FILE_APPEND);
+    if (!f) {
+        unlockBus();
+        return false;
+    }
+    size_t written = f.println(message);
+    f.close();
+    unlockBus();
+    return written > 0;
+}
+
 bool AntBoy_SDClass::lockBus(uint32_t timeoutMs) {
     if (_spiMutex == NULL) return true;
     if (xSemaphoreTake(_spiMutex, pdMS_TO_TICKS(timeoutMs)) == pdTRUE) {

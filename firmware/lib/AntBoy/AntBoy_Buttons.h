@@ -33,6 +33,8 @@ public:
     bool isPressed(AntButton btn) const;
     bool wasPressed(AntButton btn) const;
     bool wasReleased(AntButton btn) const;
+    bool anyPressed() const { return _currentState != 0; }
+    bool anyWasPressed() const { return _pressedEvents != 0; }
 
     // Helper arah D-Pad
     AntDirection readDpad() const;

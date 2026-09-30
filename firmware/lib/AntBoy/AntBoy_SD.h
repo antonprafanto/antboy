@@ -18,6 +18,12 @@ public:
     // Helper untuk membuat struktur folder standar ANTBOY
     bool createStandardDirectories();
 
+    // Helper operasi file cepat terlindung Mutex SPI
+    bool exists(const char* path);
+    String readFile(const char* path);
+    bool writeFile(const char* path, const char* message);
+    bool appendFile(const char* path, const char* message);
+
     // Mutex Arbitrasi Bus SPI (Berbagi jalur dengan Layar ST7789)
     bool lockBus(uint32_t timeoutMs = 100);
     void unlockBus();

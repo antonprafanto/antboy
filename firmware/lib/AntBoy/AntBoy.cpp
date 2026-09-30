@@ -26,16 +26,8 @@ void AntBoyClass::begin(bool initSD) {
     if (initSD) {
         if (SD.begin()) {
             SD.createStandardDirectories();
-            
-            // Catat log boot ke kartu SD
-            if (SD.lockBus(100)) {
-                File logFile = ::SD.open("/antos/boot.log", FILE_APPEND);
-                if (logFile) {
-                    logFile.println("[AntOS] Boot OK. AntBoy-Core SDK v1.0 initialized.");
-                    logFile.close();
-                }
-                SD.unlockBus();
-            }
+            // Catat log boot ke kartu SD dengan thread-safe helper
+            SD.appendFile("/antos/boot.log", "[AntOS] Boot OK. AntBoy-Core SDK v1.0 initialized.");
         }
     }
 

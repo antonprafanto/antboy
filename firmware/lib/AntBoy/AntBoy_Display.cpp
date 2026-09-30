@@ -29,6 +29,13 @@ void AntBoy_DisplayClass::setBrightness(uint8_t percent) {
     ledcWrite(_ledcChannel, duty);
 }
 
+uint8_t AntBoy_DisplayClass::cycleBrightness() {
+    uint8_t next = _brightnessPercent + 20;
+    if (next > 100) next = 20;
+    setBrightness(next);
+    return _brightnessPercent;
+}
+
 void AntBoy_DisplayClass::drawCenteredText(const char* text, int y, uint16_t color, uint8_t size) {
     setTextSize(size);
     setTextColor(color);

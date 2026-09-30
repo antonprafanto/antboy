@@ -37,6 +37,7 @@ public:
 
     // Kontrol Lampu Latar (Backlight PWM pada IO14)
     void setBrightness(uint8_t percent); // 0 - 100%
+    uint8_t cycleBrightness();           // Siklus 20% -> 40% -> 60% -> 80% -> 100%
     uint8_t getBrightness() const { return _brightnessPercent; }
 
     // Helper UI Khusus
