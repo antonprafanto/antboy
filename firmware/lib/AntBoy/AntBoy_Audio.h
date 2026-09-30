@@ -18,6 +18,7 @@ public:
     // Memainkan nada frekuensi (Hz) dengan durasi (ms)
     void playTone(uint16_t freq, uint16_t durationMs = 0);
     void stopTone();
+    void stop() { stopTone(); }
 
     // Kontrol Volume (Modulasi True PWM Duty Cycle 0% s.d. 50%)
     void setVolume(AntVolumeLevel level);
@@ -31,6 +32,7 @@ public:
     void playClick();
     void playConfirm();
     void playWarning();
+    void playError() { playWarning(); }
 
     // Pemutar format melodi universal RTTTL (Ring Tone Text Transfer Language)
     void playRTTTL(const char* tune);

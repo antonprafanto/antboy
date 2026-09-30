@@ -1,4 +1,8 @@
 #include "AntOS_Launcher.h"
+#include "games/ArcadeMenu.h"
+#include "apps/ChiptunePlayer.h"
+#include "emulators/PeanutGB_Runner.h"
+#include "emulators/Retro_Launcher.h"
 
 AntOS_LauncherClass AntOS_Launcher;
 
@@ -7,7 +11,7 @@ static const PillarData s_pillars[ANTOS_PIL_COUNT] = {
         "RETRO GAMING",
         "GB/GBC, NES, SMS, Native",
         ANTOS_COLOR_PIL_GAMING,
-        { "Game Boy (Peanut-GB)", "NES / Famicom Core", "Native 8-bit Arcade", "Chiptune Music Player" }
+        { "Game Boy (Peanut-GB)", "NES & Retro Consoles", "Native 8-bit Arcade", "Chiptune Music Player" }
     },
     {
         "WIRELESS & CYBER",
@@ -312,8 +316,28 @@ bool AntOS_LauncherClass::handleInput() {
         }
 
         if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
-            // Placeholder peluncuran aplikasi (akan disambungkan di Fase 3, 4, 5, 6)
             AntBoy.Audio.playConfirm();
+
+            if (_currentPillar == ANTOS_PIL_GAMING) {
+                switch (_subItemIndex) {
+                    case 0: // Game Boy (Peanut-GB)
+                        PeanutGB_Runner.run();
+                        break;
+                    case 1: // NES & Retro Consoles
+                        Retro_Launcher.run(RETRO_TYPE_NES);
+                        break;
+                    case 2: // Native 8-bit Arcade
+                        ArcadeMenu.run();
+                        break;
+                    case 3: // Chiptune Music Player
+                        ChiptunePlayer.run();
+                        break;
+                }
+                _needsRedraw = true;
+                return true;
+            }
+
+            // Placeholder peluncuran aplikasi pilar lain (akan disambungkan di Fase 4, 5, 6)
             AntBoy.Display.fillRoundRect(50, 90, 220, 50, 6, ANTOS_COLOR_BG_PANEL);
             AntBoy.Display.drawRoundRect(50, 90, 220, 50, 6, s_pillars[_currentPillar].themeColor);
             AntBoy.Display.setTextSize(1);

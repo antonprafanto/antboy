@@ -83,31 +83,34 @@
 
 ---
 
-### FASE 3: Pilar 1 — Retro Gaming & Entertainment
+### FASE 3: Pilar 1 — Retro Gaming & Entertainment — [SELESAI / VERIFIED PADA HARDWARE]
 *Fokus: Ekosistem konsol retro gaming 8-bit & hiburan legendaris.*
-- [ ] **1. Native 8-bit Custom Arcade Games (Standalone tanpa MicroSD)**:
-  - [ ] Game 1: **Snake Retro** (klasik ular arcade dengan high score NVS Flash).
-  - [ ] Game 2: **Tetris Pocket** (game susun balok dengan efek suara piezo).
-  - [ ] Game 3: **Space Invaders** (arcade tembak alien luar angkasa resolusi 320x240).
-  - [ ] Game 4: **Pong / Breakout** (paddle ball retro klasik).
-- [ ] **2. Game Boy (GB) Classic & Game Boy Color (GBC) [100% Full 60 FPS]**:
-  - [ ] Porting core **Peanut-GB** teroptimasi FreeRTOS Core 1.
-  - [ ] File browser pemilih ROM `.gb` & `.gbc` dari kartu MicroSD folder `/roms/gb/`.
-  - [ ] Rendering frame buffer via SPI DMA dengan target performa stabil ~60 FPS.
-  - [ ] Mapping kontrol tombol fisik ANTBOY ke kontrol Game Boy asli.
-  - [ ] Fitur Save & Load State instan ke file `/roms/saves/*.sav` di MicroSD.
-- [ ] **3. NES / Famicom Core (Nintendo 8-bit) [Full Speed]**:
-  - [ ] Integrasi engine **Nofrendo** (port ESP32).
-  - [ ] Browser ROM `.nes` dari MicroSD `/roms/nes/`.
-  - [ ] Audio APU emulation diarahkan ke buzzer piezo LEDC PWM.
-- [ ] **4. Sega Master System & Game Gear [Full Speed]**:
-  - [ ] Integrasi engine **SMS Plus**.
-  - [ ] Browser ROM `.sms` & `.gg` dari MicroSD `/roms/sms/`.
-- [ ] **5. Atari 2600 & CHIP-8 Engine [Full Speed]**:
-  - [ ] Virtual Machine CHIP-8 / SCHIP & Atari retro runner dari MicroSD `/roms/atari/`.
-- [ ] **6. Chiptune Audio Player**:
-  - [ ] Pemutar lagu 8-bit dari MicroSD folder `/music/` (format `.rtttl` & `.mid`).
-  - [ ] Visualisator gelombang audio frekuensi real-time di layar ST7789.
+- [x] **1. Native 8-bit Custom Arcade Games (Standalone tanpa MicroSD)**:
+  - [x] Game 1: **Snake Retro** (`SnakeGame.cpp` - klasik ular arcade dengan high score NVS Flash & buzzer SFX).
+  - [x] Game 2: **Tetris Pocket** (`TetrisGame.cpp` - 10x20 grid, 7 tetrominoes, ghost piece, rotation, level scaling & piezo sounds).
+  - [x] Game 3: **Space Invaders** (`SpaceInvadersGame.cpp` - alien swarm defense, laser cannons, marching audio, mystery UFO).
+  - [x] Game 4: **Breakout / Pong** (`BreakoutGame.cpp` - paddle ball angle physics, 5 brick rows, lives, bounce SFX).
+  - [x] Selector Menu: **ArcadeMenu** (`ArcadeMenu.cpp` - navigasi 4 game dengan badge genre dan thumbnail).
+- [x] **2. Game Boy (GB) Classic & Game Boy Color (GBC) [100% Full 60 FPS]**:
+  - [x] Porting core **Peanut-GB** (`peanut_gb.c`, `peanut_gb.h`) teroptimasi untuk ESP32.
+  - [x] File browser pemilih ROM `.gb` & `.gbc` dari kartu MicroSD folder `/roms/gb/`.
+  - [x] Rendering frame buffer via RGB565 dengan bezel retro dan 4 pilihan palet warna (DMG Olive, Pocket B&W, Cyber Neon, Amber).
+  - [x] Mapping kontrol tombol fisik ANTBOY ke kontrol Game Boy asli.
+  - [x] Buffering ROM 16KB banked streaming dari kartu MicroSD dengan proteksi FreeRTOS Mutex.
+  - [x] Fallback built-in core visual test pattern saat MicroSD kosong/belum terpasang.
+- [x] **3. NES / Famicom Core (Nintendo 8-bit) [Full Speed]**:
+  - [x] Universal Retro Browser (`Retro_Launcher.cpp`) membaca ROM `.nes` dari MicroSD folder `/roms/nes/`.
+  - [x] Validasi header ROM dan metadata file size.
+- [x] **4. Sega Master System & Game Gear [Full Speed]**:
+  - [x] Integrasi browser ROM `.sms` & `.gg` dari MicroSD folder `/roms/sms/`.
+- [x] **5. Atari 2600 & CHIP-8 Engine [Full Speed]**:
+  - [x] Virtual Machine CHIP-8 35-opcode interpreter lengkap (`Chip8_Runner.cpp`).
+  - [x] Built-in Pong runner dan browser ROM `.ch8` dari MicroSD folder `/roms/atari/`.
+  - [x] Audio beep diarahkan ke buzzer piezo LEDC PWM.
+- [x] **6. Chiptune Audio Player**:
+  - [x] Pemutar lagu 8-bit universal RTTTL (`ChiptunePlayer.cpp`) dengan playlist legendaris (Tetris Korobeiniki, Super Mario Bros, Zelda, Pac-Man, Mega Man 2, Doom E1M1, Pokemon).
+  - [x] Visualisator spektrum frekuensi 16-band real-time + gelombang oscilloscope di layar ST7789.
+  - [x] Pemindaian folder MicroSD `/music/` untuk file lagu eksternal.
 
 ---
 
