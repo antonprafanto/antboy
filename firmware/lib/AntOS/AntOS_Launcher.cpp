@@ -142,20 +142,20 @@ void AntOS_LauncherClass::drawCard(int x, int y, int w, int h, uint8_t pillarInd
     AntBoy.Display.drawCenteredText("4 APPS READY", pillY + 4, data.themeColor, 1);
 }
 
-void AntOS_LauncherClass::drawCarousel() {
+void AntOS_LauncherClass::drawCarousel(int slideX) {
     // Bersihkan area konten (di bawah status bar, di atas footer)
     AntBoy.Display.fillRect(0, 23, ANTBOY_SCREEN_WIDTH, 193, ANTOS_COLOR_BG_DARK);
 
     // Kartu Kiri (Preview)
     uint8_t leftPillar = (_currentPillar > 0) ? _currentPillar - 1 : ANTOS_PIL_COUNT - 1;
-    drawCard(-110, 42, 150, 134, leftPillar, false);
+    drawCard(-110 + slideX, 42, 150, 134, leftPillar, false);
 
     // Kartu Kanan (Preview)
     uint8_t rightPillar = (_currentPillar + 1) % ANTOS_PIL_COUNT;
-    drawCard(280, 42, 150, 134, rightPillar, false);
+    drawCard(280 + slideX, 42, 150, 134, rightPillar, false);
 
     // Kartu Utama Tengah (Fokus)
-    drawCard(55, 34, 210, 148, _currentPillar, true);
+    drawCard(55 + slideX, 34, 210, 148, _currentPillar, true);
 
     // Indikator Titik (Dots) di Bawah Kartu
     int startDotX = 136;
@@ -261,14 +261,30 @@ bool AntOS_LauncherClass::handleInput() {
         if (AntBoy.Buttons.wasPressed(ANT_BTN_RIGHT)) {
             _currentPillar = (_currentPillar + 1) % ANTOS_PIL_COUNT;
             AntBoy.Audio.playTone(2637, 20);
-            _needsRedraw = true;
+            drawCarousel(40);
+            drawFooterGuide();
+            delay(20);
+            drawCarousel(20);
+            drawFooterGuide();
+            delay(20);
+            drawCarousel(0);
+            drawFooterGuide();
+            _needsRedraw = false;
             return true;
         }
 
         if (AntBoy.Buttons.wasPressed(ANT_BTN_LEFT)) {
             _currentPillar = (_currentPillar > 0) ? _currentPillar - 1 : ANTOS_PIL_COUNT - 1;
             AntBoy.Audio.playTone(2637, 20);
-            _needsRedraw = true;
+            drawCarousel(-40);
+            drawFooterGuide();
+            delay(20);
+            drawCarousel(-20);
+            drawFooterGuide();
+            delay(20);
+            drawCarousel(0);
+            drawFooterGuide();
+            _needsRedraw = false;
             return true;
         }
 

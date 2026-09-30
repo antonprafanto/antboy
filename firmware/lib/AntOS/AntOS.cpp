@@ -18,6 +18,8 @@ void AntOSClass::begin() {
     QuickSettings.begin();
 
     // 5. Render tampilan awal
+    _lastInputTime = millis();
+    _isDimmed = false;
     requestRedraw();
 }
 
@@ -28,6 +30,18 @@ void AntOSClass::requestRedraw() {
 void AntOSClass::update() {
     // Polling status tombol fisik
     AntBoy.update();
+
+    // 0. Auto-Dimming Inactivity Engine (Sesuai PRD Bab 7.2)
+    if (AntBoy.Buttons.anyPressed()) {
+        if (_isDimmed) {
+            AntBoy.Display.setBrightness(Settings.brightness);
+            _isDimmed = false;
+        }
+        _lastInputTime = millis();
+    } else if (!_isDimmed && (millis() - _lastInputTime >= (uint32_t)Settings.autoDimSeconds * 1000)) {
+        _isDimmed = true;
+        AntBoy.Display.setBrightness(15); // Redupkan ke 15% untuk efisiensi daya
+    }
 
     // 1. Tangani Global Exit Shortcut (Tahan SELECT + START selama 2 detik)
     if (AntBoy.checkExitShortcut()) {
@@ -59,7 +73,6 @@ void AntOSClass::update() {
 
     // 4. Delegasi Input Berdasarkan State UI
     if (QuickSettings.isOpen()) {
-        bool wasOpen = true;
         QuickSettings.handleInput();
         if (!QuickSettings.isOpen()) {
             // Baru saja ditutup, gambar ulang launcher
@@ -75,12 +88,22 @@ void AntOSClass::update() {
     StatusBar.update();
     Launcher.update();
 
-    // 6. Rendering Frame
-    StatusBar.render(_redrawPending);
+    // Jika OSD Toast baru saja tertutup, bersihkan area dengan redraw
+    if (StatusBar.checkToastClosed()) {
+        requestRedraw();
+    }
+
+    // 6. Rendering Frame (Hierarki Layering: Konten -> Status Bar -> Toast)
     if (QuickSettings.isOpen()) {
         QuickSettings.render();
     } else {
         Launcher.render(_redrawPending);
+    }
+    StatusBar.render(_redrawPending);
+
+    // OSD Volume Toast selalu dirender paling atas (Top Layer)
+    if (StatusBar.isToastActive()) {
+        StatusBar.renderToast();
     }
 
     _redrawPending = false;

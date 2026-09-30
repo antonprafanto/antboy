@@ -21,7 +21,9 @@ public:
     void requestRedraw();
 
 private:
-    bool _redrawPending = true;
+    bool     _redrawPending = true;
+    uint32_t _lastInputTime = 0;
+    bool     _isDimmed = false;
 };
 
 extern AntOSClass AntOS;

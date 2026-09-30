@@ -92,22 +92,38 @@ void AntOS_StatusBarClass::render(bool forceRedraw) {
     AntBoy.Display.print(" 1.0");
 
     // Right Icons
-    // 1. SD Card (X: 195, Y: 5)
-    drawSDIcon(195, 5, currentSD);
+    // 1. SD Card (X: 172, Y: 5)
+    drawSDIcon(172, 5, currentSD);
 
-    // 2. Wi-Fi (X: 218, Y: 5)
-    drawWifiIcon(218, 5, true);
+    // 2. Wi-Fi (X: 192, Y: 5)
+    drawWifiIcon(192, 5, true);
 
-    // 3. Volume (X: 238, Y: 5)
-    drawVolumeIcon(238, 5, currentVol);
+    // 3. Volume (X: 212, Y: 5)
+    drawVolumeIcon(212, 5, currentVol);
 
-    // 4. Uptime Clock (X: 265, Y: 7)
+    // 4. Uptime Clock (X: 236, Y: 7)
     char timeStr[10];
     snprintf(timeStr, sizeof(timeStr), "%02d:%02d", mins, secs);
     AntBoy.Display.setTextSize(1);
     AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_DARK);
-    AntBoy.Display.setCursor(265, 7);
+    AntBoy.Display.setCursor(236, 7);
     AntBoy.Display.print(timeStr);
+
+    // 5. Battery Icon (X: 284, Y: 6)
+    drawBatteryIcon(284, 6);
+}
+
+void AntOS_StatusBarClass::drawBatteryIcon(int x, int y) {
+    // Battery shell (lebar 24, tinggi 10)
+    AntBoy.Display.drawRoundRect(x, y, 22, 10, 2, ANTOS_COLOR_BORDER_GLOW);
+    AntBoy.Display.fillRect(x + 22, y + 2, 2, 6, ANTOS_COLOR_BORDER_GLOW); // Terminal (+)
+    // USB / Battery indicator bar
+    AntBoy.Display.fillRoundRect(x + 2, y + 2, 18, 6, 1, ANTOS_COLOR_GREEN);
+    // Simbol lightning / charge kecil di tengah
+    AntBoy.Display.drawPixel(x + 10, y + 3, ANTOS_COLOR_YELLOW);
+    AntBoy.Display.drawPixel(x + 9, y + 4, ANTOS_COLOR_YELLOW);
+    AntBoy.Display.drawPixel(x + 10, y + 5, ANTOS_COLOR_YELLOW);
+    AntBoy.Display.drawPixel(x + 11, y + 6, ANTOS_COLOR_YELLOW);
 }
 
 void AntOS_StatusBarClass::triggerVolumeOSD(const char* volStr, uint8_t level) {
@@ -154,9 +170,16 @@ void AntOS_StatusBarClass::renderToast() {
 }
 
 void AntOS_StatusBarClass::update() {
-    // Cek timeout OSD toast
     if (_toastActive && millis() > _toastDismissTime) {
         _toastActive = false;
-        // Permintaan gambar ulang launcher akan dipicu oleh AntOS
+        _toastJustClosed = true;
     }
+}
+
+bool AntOS_StatusBarClass::checkToastClosed() {
+    if (_toastJustClosed) {
+        _toastJustClosed = false;
+        return true;
+    }
+    return false;
 }

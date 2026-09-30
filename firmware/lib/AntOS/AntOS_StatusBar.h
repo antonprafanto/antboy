@@ -11,11 +11,15 @@ public:
 
     // OSD Volume Toast popup
     void triggerVolumeOSD(const char* volStr, uint8_t level);
+    bool isToastActive() const { return _toastActive; }
+    bool checkToastClosed();
+    void renderToast();
 
 private:
     uint32_t _lastRenderTime = 0;
     uint32_t _toastDismissTime = 0;
     bool     _toastActive = false;
+    bool     _toastJustClosed = false;
     char     _toastVolStr[16] = {0};
     uint8_t  _toastVolLevel = 0;
 
@@ -26,7 +30,7 @@ private:
     void drawSDIcon(int x, int y, bool mounted);
     void drawWifiIcon(int x, int y, bool active);
     void drawVolumeIcon(int x, int y, uint8_t level);
-    void renderToast();
+    void drawBatteryIcon(int x, int y);
 };
 
 extern AntOS_StatusBarClass AntOS_StatusBar;

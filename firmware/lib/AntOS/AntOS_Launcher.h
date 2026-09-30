@@ -33,7 +33,7 @@ private:
     uint8_t _subItemIndex = 0;
     bool    _needsRedraw = true;
 
-    void drawCarousel();
+    void drawCarousel(int slideX = 0);
     void drawCard(int x, int y, int w, int h, uint8_t pillarIndex, bool isFocused);
     void drawPillarIcon(int cx, int cy, uint8_t pillarIndex, uint16_t color);
     void drawSubMenu();
