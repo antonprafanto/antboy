@@ -148,29 +148,50 @@ Header samping 15-pin (J4) dirancang untuk kartu ekspansi modular. Pengembang ad
 ## 6. Spesifikasi Mekanikal, Casing & Rekomendasi Baterai
 
 ```text
-                        DIMENSI FISIK PCB ANTBOY V1
+                    TATA LETAK FISIK & MOUNTING HOLES ANTBOY V1
        |<----------------------- 68.50 mm ----------------------->|
    --- +----------------------------------------------------------+
-    ^  |  [SW0: Power]               [J1: ST7789 IPS 2.0" Display]|
+    ^  | (O) [Hole 1: M3]    [SW0: Power]        (O) [Hole 2: M3] |
+    |  | +------------------------------------------------------+ |
+    |  | |                                                      | |
+    |  | |           ST7789 2.0" IPS LCD (320x240)              | |
+    |  | |                Mode Landscape Asli                   | |
+ 84.00 | |                                                      | |
+   mm  | +------------------------------------------------------+ |
+    |  |  [START]       [SELECT]         [VOL]         [MENU]     |
     |  |                                                          |
-    |  |  [SW1: MENU]                 [SW2: VOL]                  |
+    |  |    [UP]                         (O) [Hole 3: M3]         |
+    |  | [LEFT] [RIGHT]     [R-Ladder]            [A]             |
+    |  |    [DOWN]          [Array SMD]               [B]         |
     |  |                                                          |
- 84.00 |  [D-PAD]                                    [ACTION]     |
-   mm  |    [UP]                                       [A]        |
-    |  | [LEFT] [RIGHT]                             [B]           |
-    |  |   [DOWN]                                                 |
-    |  |                                                          |
-    v  |  [SW3: SELECT]               [SW4: START]                |
+    v  | (O) [Hole 4: M3]  ANTBOY (2026)         (O) [Hole 5: M3] |
    --- +----------------------------------------------------------+
-       * Catatan Mekanikal: Mounting Holes = 0 (Tanpa lubang sekrup PCB)
+       * Catatan Mekanikal: 5x Lubang Baut M3 (Drill 3.0 mm, Pad 4.0 mm)
 ```
 
-### 6.1 Dimensi PCB & Mekanisme Casing 3D Print
-1. **Dimensi PCB**: Tepat **68.50 mm (Lebar) x 84.00 mm (Tinggi)** dengan ketebalan standar 1.6 mm.
-2. **Pedoman Casing Tanpa Baut (0 Mounting Holes)**:
-   - Casing wajib menggunakan mekanisme **Snap-Fit**, **Perimeter Rim Groove (Alur penahan bibir PCB)**, atau **Sandwich Clamping (Penjepit depan & belakang)**.
-   - Jarak clearance tepi PCB ke dinding casing: **0.4 mm – 0.6 mm**.
-   - Ketinggian tombol tact switch: 6x6x5 mm (diperlukan dudukan plunger tombol 3D print dengan toleransi 0.3 mm).
+### 6.1 Dimensi PCB, Komponen Sisi Depan & Casing M3
+1. **Dimensi Presisi PCB**: Tepat **68.50 mm (Lebar) x 84.00 mm (Tinggi)** dengan ketebalan FR-4 standar 1.6 mm.
+2. **5x Lubang Baut Standar M3 (Mounting Holes Onboard)**:
+   - PCB telah dilengkapi **5 lubang baut M3 (Drill 3.0 mm, Annular Pad 4.0 mm)**:
+     - **Hole 1 (Kiri Atas)**: Koordinat X: 94.0, Y: 63.0
+     - **Hole 2 (Kanan Atas / Display)**: Koordinat X: 127.0, Y: 90.0
+     - **Hole 3 (Tengah Kanan / dekat Tombol A)**: Koordinat X: 136.5, Y: 115.5
+     - **Hole 4 (Sudut Kiri Bawah)**: Koordinat X: 94.5, Y: 137.5
+     - **Hole 5 (Sudut Kanan Bawah)**: Koordinat X: 152.0, Y: 137.5
+   - **Rekomendasi Casing 3D Print / Akrilik**:
+     - Casing dapat menggunakan **Baut M3 × 6mm / 8mm** dan standoff kuningan M3 (lebih kokoh dan awet dibanding murni snap-fit).
+     - Desain casing *sandwich* (pelat depan + pelat belakang) diikat langsung menggunakan 5 baut M3 tersebut.
+3. **Komponen SMD Sisi Depan (Front-Side Clearance)**:
+   - Di sisi depan PCB, terdapat deretan komponen SMD:
+     - Kolom 4x resistor ladder 1206 di tengah (R4, R5, R6, R7 untuk D-Pad).
+     - Resistor 1206 di antara tombol START-SELECT dan VOL-MENU.
+     - LED indikator status D1 di tengah.
+   - **Toleransi Faceplate Casing**: Faceplate depan wajib memiliki ceruk (*cavity clearance*) minimal **1.0 mm** di area tengah agar tidak menekan komponen SMD tersebut saat baut M3 dikencangkan.
+4. **Tata Letak Tombol Nyata (Sesuai Silkscreen Board)**:
+   - **Baris Fungsi (Tepat di bawah layar)**: `[START]` - `[SELECT]` - `[VOL]` - `[MENU]`.
+   - **Kluster D-Pad (Sisi Kiri)**: `[UP]`, `[DOWN]`, `[LEFT]`, `[RIGHT]`.
+   - **Kluster Action (Sisi Kanan)**: `[A]` (posisi atas) dan `[B]` (posisi bawah).
+   - **Branding Silkscreen Depan**: `ANTBOY (2026) Multi-Purpose Device` di tengah bawah, dan vertikal `s.id/antonprafanto` di bibir kanan.
 
 ### 6.2 Rekomendasi Pemilihan Baterai Li-Po (Form Factor)
 Untuk memastikan baterai muat secara ergonomis di dalam casing belakang ANTBOY tanpa membuat perangkat terlalu tebal:
