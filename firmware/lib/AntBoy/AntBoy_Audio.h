@@ -19,11 +19,12 @@ public:
     void playTone(uint16_t freq, uint16_t durationMs = 0);
     void stopTone();
 
-    // Kontrol Volume
+    // Kontrol Volume (Modulasi True PWM Duty Cycle 0% s.d. 50%)
     void setVolume(AntVolumeLevel level);
     AntVolumeLevel cycleVolume(); // Siklus Mute -> Low -> Med -> High -> Max -> Mute
     AntVolumeLevel getVolume() const { return _volumeLevel; }
     const char* getVolumeString() const;
+    uint8_t getDutyCycleForVolume() const;
 
     // Jingle & Sound Effects Bawaan (Menggunakan Titik Resonansi 1.7 - 3.1 kHz)
     void playStartupJingle();
@@ -33,4 +34,6 @@ public:
 
 private:
     AntVolumeLevel _volumeLevel = ANT_VOL_HIGH;
+    uint8_t _ledcChannel = 2;
+    uint8_t _ledcResolution = 8;
 };

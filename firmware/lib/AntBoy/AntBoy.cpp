@@ -7,10 +7,10 @@ void AntBoyClass::begin(bool initSD) {
     Power.begin();
     setLED(true); // Nyalakan LED saat boot
 
-    // 2. Inisialisasi Audio Buzzer
+    // 2. Inisialisasi Audio Buzzer dengan hardware LEDC PWM duty cycle
     Audio.begin();
 
-    // 3. Inisialisasi Input Tombol & D-Pad ADC
+    // 3. Inisialisasi Input Tombol (dengan debouncing & median filter ADC)
     Buttons.begin();
 
     // 4. Inisialisasi Layar ST7789 Landscape 320x240
@@ -18,7 +18,19 @@ void AntBoyClass::begin(bool initSD) {
 
     // 5. Inisialisasi MicroSD jika diminta
     if (initSD) {
-        SD.begin();
+        if (SD.begin()) {
+            SD.createStandardDirectories();
+            
+            // Catat log boot ke kartu SD
+            if (SD.lockBus(100)) {
+                File logFile = ::SD.open("/antos/boot.log", FILE_APPEND);
+                if (logFile) {
+                    logFile.println("[AntOS] Boot OK. AntBoy-Core SDK v1.0 initialized.");
+                    logFile.close();
+                }
+                SD.unlockBus();
+            }
+        }
     }
 
     setLED(false); // Matikan LED setelah boot selesai

@@ -37,7 +37,7 @@ public:
     // Helper arah D-Pad
     AntDirection readDpad() const;
 
-    // Nilai analog mentah untuk kalibrasi / diagnostik
+    // Nilai analog terfilter untuk kalibrasi / diagnostik
     int getADC_Vertical() const { return _lastAdcVert; }
     int getADC_Horizontal() const { return _lastAdcHorz; }
 
@@ -53,6 +53,11 @@ private:
     int _lastAdcVert = 0;
     int _lastAdcHorz = 0;
 
-    uint32_t _comboStartTime = 0;
-    bool _comboActive = false;
+    // Timing Debounce untuk 6 tombol digital
+    uint32_t _lastDebounceTime[6] = {0};
+    bool _debouncedDigital[6] = {false};
+    bool _lastReadingDigital[6] = {false};
+
+    // Filter median ADC 3-sampel
+    int readFilteredADC(int pin);
 };

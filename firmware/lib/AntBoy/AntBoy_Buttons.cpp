@@ -17,33 +17,73 @@ void AntBoy_ButtonsClass::begin() {
     _previousState = 0;
     _pressedEvents = 0;
     _releasedEvents = 0;
+
+    for (int i = 0; i < 6; i++) {
+        _lastDebounceTime[i] = 0;
+        _debouncedDigital[i] = false;
+        _lastReadingDigital[i] = false;
+    }
+}
+
+int AntBoy_ButtonsClass::readFilteredADC(int pin) {
+    // Median Filter 3-Sampel untuk meredam noise switching dan ripple resistor ladder
+    int a = analogRead(pin);
+    delayMicroseconds(50);
+    int b = analogRead(pin);
+    delayMicroseconds(50);
+    int c = analogRead(pin);
+
+    // Median of 3 values
+    if ((a <= b && b <= c) || (c <= b && b <= a)) return b;
+    if ((b <= a && a <= c) || (c <= a && a <= b)) return a;
+    return c;
 }
 
 void AntBoy_ButtonsClass::update() {
     _previousState = _currentState;
     uint16_t state = 0;
+    uint32_t now = millis();
 
-    // 1. Baca Tombol Digital (Active-LOW: 0 = Ditekan)
-    if (digitalRead(ANTBOY_PIN_BTN_A) == LOW)      state |= (1 << ANT_BTN_A);
-    if (digitalRead(ANTBOY_PIN_BTN_B) == LOW)      state |= (1 << ANT_BTN_B);
-    if (digitalRead(ANTBOY_PIN_BTN_SELECT) == LOW) state |= (1 << ANT_BTN_SELECT);
-    if (digitalRead(ANTBOY_PIN_BTN_START) == LOW)  state |= (1 << ANT_BTN_START);
-    if (digitalRead(ANTBOY_PIN_BTN_MENU) == LOW)   state |= (1 << ANT_BTN_MENU);
-    if (digitalRead(ANTBOY_PIN_BTN_VOL) == LOW)    state |= (1 << ANT_BTN_VOL);
+    // 1. Baca & Debounce 6 Tombol Digital (Active-LOW: 0 = Ditekan)
+    const uint8_t digitalPins[6] = {
+        ANTBOY_PIN_BTN_A,
+        ANTBOY_PIN_BTN_B,
+        ANTBOY_PIN_BTN_SELECT,
+        ANTBOY_PIN_BTN_START,
+        ANTBOY_PIN_BTN_MENU,
+        ANTBOY_PIN_BTN_VOL
+    };
 
-    // 2. Baca D-Pad Vertikal (IO35)
-    _lastAdcVert = analogRead(ANTBOY_PIN_DPAD_VERT);
-    if (_lastAdcVert > 3000) {
+    for (int i = 0; i < 6; i++) {
+        bool rawPressed = (digitalRead(digitalPins[i]) == LOW);
+        if (rawPressed != _lastReadingDigital[i]) {
+            _lastDebounceTime[i] = now;
+            _lastReadingDigital[i] = rawPressed;
+        }
+
+        // Terapkan batas waktu debounce 18 ms
+        if ((now - _lastDebounceTime[i]) >= 18) {
+            _debouncedDigital[i] = rawPressed;
+        }
+
+        if (_debouncedDigital[i]) {
+            state |= (1 << i);
+        }
+    }
+
+    // 2. Baca D-Pad Vertikal (IO35) dengan Median Filter & Threshold Histeresis
+    _lastAdcVert = readFilteredADC(ANTBOY_PIN_DPAD_VERT);
+    if (_lastAdcVert > 3100) {
         state |= (1 << ANT_BTN_UP);
-    } else if (_lastAdcVert > 1000) {
+    } else if (_lastAdcVert > 1200 && _lastAdcVert < 2900) {
         state |= (1 << ANT_BTN_DOWN);
     }
 
-    // 3. Baca D-Pad Horisontal (IO34)
-    _lastAdcHorz = analogRead(ANTBOY_PIN_DPAD_HORZ);
-    if (_lastAdcHorz > 3000) {
+    // 3. Baca D-Pad Horisontal (IO34) dengan Median Filter & Threshold Histeresis
+    _lastAdcHorz = readFilteredADC(ANTBOY_PIN_DPAD_HORZ);
+    if (_lastAdcHorz > 3100) {
         state |= (1 << ANT_BTN_LEFT);
-    } else if (_lastAdcHorz > 1000) {
+    } else if (_lastAdcHorz > 1200 && _lastAdcHorz < 2900) {
         state |= (1 << ANT_BTN_RIGHT);
     }
 
