@@ -262,6 +262,9 @@ SDCARD:/ (FAT32, Cluster 32KB)
 │   └── boot.log               # Catatan diagnostik sistem
 ├── roms/
 │   ├── gb/                    # Berkas ROM Game Boy (.gb / .gbc)
+│   ├── nes/                   # Berkas ROM NES / Famicom (.nes)
+│   ├── sms/                   # Berkas ROM Sega Master System & Game Gear (.sms / .gg)
+│   ├── atari/                 # Berkas ROM Atari 2600 & CHIP-8 (.a26 / .ch8)
 │   └── saves/                 # Berkas save-state emulator (.sav)
 ├── apps/                      # Modul aplikasi executable komunitas (.bin)
 ├── music/                     # Koleksi lagu chiptune 8-bit (.mid, .vgm, .rtttl)

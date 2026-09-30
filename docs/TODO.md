@@ -84,21 +84,30 @@
 ---
 
 ### FASE 3: Pilar 1 — Retro Gaming & Entertainment
-*Fokus: Fitur hiburan konsol retro klasik.*
-- [ ] **Native 8-bit Mini Games (Standalone tanpa MicroSD)**:
-  - [ ] Game 1: **Snake Retro** (klasik ular dengan high score NVS).
-  - [ ] Game 2: **Tetris Pocket** (game susun balok dengan efek suara).
-  - [ ] Game 3: **Space Invaders** (arcade tembak-menembak sederhana).
-  - [ ] Game 4: **Pong / Breakout**.
-- [ ] **Chiptune Audio Player**:
-  - [ ] Pemutar lagu 8-bit dari kartu SD format `.mid` / `.rtttl`.
-  - [ ] Visualisator gelombang audio real-time di layar ST7789.
-- [ ] **Game Boy Emulator Core (Peanut-GB Port)**:
-  - [ ] Integrasi engine Peanut-GB ke arsitektur FreeRTOS Core 1.
-  - [ ] Browser file pemilihan ROM `.gb` dan `.gbc` dari folder `/roms/gb/`.
-  - [ ] Framebuffer blit via SPI DMA dengan target performa ~60 FPS (frame-skip opsional).
-  - [ ] Mapping kontrol tombol fisik ANTBOY ke tombol Game Boy asli.
-  - [ ] Fitur Save & Load State ke file `/roms/saves/*.sav` di MicroSD.
+*Fokus: Ekosistem konsol retro gaming 8-bit & hiburan legendaris.*
+- [ ] **1. Native 8-bit Custom Arcade Games (Standalone tanpa MicroSD)**:
+  - [ ] Game 1: **Snake Retro** (klasik ular arcade dengan high score NVS Flash).
+  - [ ] Game 2: **Tetris Pocket** (game susun balok dengan efek suara piezo).
+  - [ ] Game 3: **Space Invaders** (arcade tembak alien luar angkasa resolusi 320x240).
+  - [ ] Game 4: **Pong / Breakout** (paddle ball retro klasik).
+- [ ] **2. Game Boy (GB) Classic & Game Boy Color (GBC) [100% Full 60 FPS]**:
+  - [ ] Porting core **Peanut-GB** teroptimasi FreeRTOS Core 1.
+  - [ ] File browser pemilih ROM `.gb` & `.gbc` dari kartu MicroSD folder `/roms/gb/`.
+  - [ ] Rendering frame buffer via SPI DMA dengan target performa stabil ~60 FPS.
+  - [ ] Mapping kontrol tombol fisik ANTBOY ke kontrol Game Boy asli.
+  - [ ] Fitur Save & Load State instan ke file `/roms/saves/*.sav` di MicroSD.
+- [ ] **3. NES / Famicom Core (Nintendo 8-bit) [Full Speed]**:
+  - [ ] Integrasi engine **Nofrendo** (port ESP32).
+  - [ ] Browser ROM `.nes` dari MicroSD `/roms/nes/`.
+  - [ ] Audio APU emulation diarahkan ke buzzer piezo LEDC PWM.
+- [ ] **4. Sega Master System & Game Gear [Full Speed]**:
+  - [ ] Integrasi engine **SMS Plus**.
+  - [ ] Browser ROM `.sms` & `.gg` dari MicroSD `/roms/sms/`.
+- [ ] **5. Atari 2600 & CHIP-8 Engine [Full Speed]**:
+  - [ ] Virtual Machine CHIP-8 / SCHIP & Atari retro runner dari MicroSD `/roms/atari/`.
+- [ ] **6. Chiptune Audio Player**:
+  - [ ] Pemutar lagu 8-bit dari MicroSD folder `/music/` (format `.rtttl` & `.mid`).
+  - [ ] Visualisator gelombang audio frekuensi real-time di layar ST7789.
 
 ---
 

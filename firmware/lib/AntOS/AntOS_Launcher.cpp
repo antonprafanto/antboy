@@ -5,9 +5,9 @@ AntOS_LauncherClass AntOS_Launcher;
 static const PillarData s_pillars[ANTOS_PIL_COUNT] = {
     {
         "RETRO GAMING",
-        "Peanut-GB & 8-Bit Arcade",
+        "GB/GBC, NES, SMS, Native",
         ANTOS_COLOR_PIL_GAMING,
-        { "Peanut-GB Emulator", "Snake Retro", "Tetris Pocket", "Chiptune Player" }
+        { "Game Boy (Peanut-GB)", "NES / Famicom Core", "Native 8-bit Arcade", "Chiptune Music Player" }
     },
     {
         "WIRELESS & CYBER",
