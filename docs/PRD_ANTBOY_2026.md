@@ -6,13 +6,13 @@
 | Dokumen | Nilai |
 |---|---|
 | **Nama Proyek** | **ANTBOY (2026) Multi-Purpose Handheld Ecosystem** |
-| **Versi Dokumen** | **1.1 (Comprehensive Engineering & Commercial Specification)** |
+| **Versi Dokumen** | **1.2 (Commercial & Production Gold Master Specification)** |
 | **Tanggal Pembaruan** | September 2026 |
-| **Status** | Active / Bring-Up Complete / Firmware Development |
+| **Status** | Active / Bring-Up Complete / Firmware & Commercialization Phase |
 | **Lead Developer & Hardware Designer** | Anton Prafanto |
 | **Target Rilis MVP** | Q4 2026 |
-| **Lisensi Hardware** | Proprietary (Hanya distribusi Gerber produksi, skematik/PCB source dilindungi) |
-| **Lisensi Software** | Open-Core / MIT (Firmware Kernel, AntOS Launcher & Community Apps) |
+| **Lisensi Hardware** | Proprietary (Distribusi hanya berkas Gerber produksi, source CAD/KiCad dilindungi) |
+| **Lisensi Software** | Open-Core / MIT (Kernel AntOS, SDK Pengembang & Aplikasi Komunitas) |
 | **Repository Resmi** | `https://github.com/antonprafanto/antboy.git` |
 
 ---
@@ -91,7 +91,7 @@ Perangkat ini dirancang dengan PCB 2-layer kustom (dimensi kompak 68.5 x 84.0 mm
 
 ## 4. Analisis Ekspansi GPIO & Matriks Konflik Bus (J4 Header)
 
-Header samping 15-pin (J4) dirancang untuk kartu ekspansi modular. Namun pengembang add-on **wajib** memahami matriks ketersediaan pin berikut:
+Header samping 15-pin (J4) dirancang untuk kartu ekspansi modular. Pengembang add-on **wajib** memahami matriks ketersediaan pin berikut:
 
 ```text
                        HEADER EKSPANSI 15-PIN (J4)
@@ -128,8 +128,6 @@ Header samping 15-pin (J4) dirancang untuk kartu ekspansi modular. Namun pengemb
 
 ## 5. Hardware Errata & Catatan Revisi (HW V1 vs HW V1.1)
 
-Melalui uji bring-up hardware langsung pada board fisik, ditemukan beberapa catatan hardware yang terdokumentasi resmi:
-
 ### [HW-ERR-01] Resistor Seri Buzzer 1kΩ (Low Acoustic Volume)
 - **Kondisi**: Resistor R1 terpasang 1kΩ antara GPIO 26 dan Buzzer J3 (impedansi ~16–32Ω). Mengakibatkan drop tegangan 97% di resistor, sehingga buzzer bersuara lirih.
 - **Solusi Firmware V1**: Gunakan modulasi frekuensi pada titik resonansi akustik fisik buzzer (1,700 Hz s.d. 3,100 Hz) untuk efisiensi transfer energi maksimum.
@@ -147,7 +145,7 @@ Melalui uji bring-up hardware langsung pada board fisik, ditemukan beberapa cata
 
 ---
 
-## 6. Spesifikasi Mekanikal & Casing Enclosure
+## 6. Spesifikasi Mekanikal, Casing & Rekomendasi Baterai
 
 ```text
                         DIMENSI FISIK PCB ANTBOY V1
@@ -167,11 +165,24 @@ Melalui uji bring-up hardware langsung pada board fisik, ditemukan beberapa cata
        * Catatan Mekanikal: Mounting Holes = 0 (Tanpa lubang sekrup PCB)
 ```
 
+### 6.1 Dimensi PCB & Mekanisme Casing 3D Print
 1. **Dimensi PCB**: Tepat **68.50 mm (Lebar) x 84.00 mm (Tinggi)** dengan ketebalan standar 1.6 mm.
-2. **Pedoman Desain Casing 3D Print**:
-   - Karena PCB **tidak memiliki lubang baut (0 mounting holes)**, casing harus menggunakan mekanisme **Snap-Fit**, **Perimeter Rim Groove (Alur penahan bibir PCB)**, atau **Sandwich Clamping (Penjepit depan & belakang)**.
+2. **Pedoman Casing Tanpa Baut (0 Mounting Holes)**:
+   - Casing wajib menggunakan mekanisme **Snap-Fit**, **Perimeter Rim Groove (Alur penahan bibir PCB)**, atau **Sandwich Clamping (Penjepit depan & belakang)**.
    - Jarak clearance tepi PCB ke dinding casing: **0.4 mm – 0.6 mm**.
    - Ketinggian tombol tact switch: 6x6x5 mm (diperlukan dudukan plunger tombol 3D print dengan toleransi 0.3 mm).
+
+### 6.2 Rekomendasi Pemilihan Baterai Li-Po (Form Factor)
+Untuk memastikan baterai muat secara ergonomis di dalam casing belakang ANTBOY tanpa membuat perangkat terlalu tebal:
+1. **Baterai Model 503040**:
+   - Dimensi: Tebal 5.0 mm × Lebar 30 mm × Panjang 40 mm.
+   - Kapasitas: **~600 mAh**.
+   - Estimasi Runtime: **3.5 – 4.5 jam** pemakaian aktif (Gaming/Tools).
+2. **Baterai Model 603048 (Rekomendasi Utama)**:
+   - Dimensi: Tebal 6.0 mm × Lebar 30 mm × Panjang 48 mm.
+   - Kapasitas: **~900 mAh**.
+   - Estimasi Runtime: **5.5 – 7.0 jam** pemakaian aktif.
+3. **Standar Keamanan Baterai**: Wajib menggunakan baterai Li-Po 3.7V dengan **PCM Protection Board Onboard** (proteksi Over-charge 4.25V, Over-discharge 2.75V, dan Short-circuit protection).
 
 ---
 
@@ -207,58 +218,145 @@ Karena layar LCD dan kartu MicroSD berbagi jalur clock (`IO18`) dan data MOSI (`
    - Mode Rendering Layar: 40 MHz SPI (Mode 3).
    - Mode Akses MicroSD: 20–25 MHz SPI (Mode 0). Frekuensi disesuaikan otomatis sebelum transaksi dimulai.
 
-### 7.2 Power Management & Deep Sleep
-- **Wakeup Vector**: Tombol `MENU` (`IO13` / RTC_GPIO14) atau `START` (`IO39` / RTC_GPIO3) dikonfigurasi sebagai sumber *wake-up interrupt* eksternal via `esp_sleep_enable_ext0_wakeup()`.
-- **Konsumsi Arus Operasional**:
-  - Gaming Aktif (Layar ON + Buzzer): ~110–140 mA.
-  - Mode Wireless Aktif (Wi-Fi Promiscuous Scan): ~170–210 mA.
-  - Deep Sleep (MCU ESP32 saja): ~15 µA. (Catatan: Total konsumsi board carrier + devboard sekitar 8–12 mA akibat LDO & chip USB-UART devboard).
+### 7.2 Kontrol Volume Suara & Kecerahan Layar (Software PWM)
+1. **Sistem Kontrol Volume (`VOL` Button / `IO0`)**:
+   - Tekan tombol `VOL` untuk siklus level: `MUTE (0%)` -> `LOW (25%)` -> `MED (50%)` -> `HIGH (75%)` -> `MAX (100%)`.
+   - Modulasi volume piezo dicapai melalui pengaturan PWM Duty Cycle (0% s.d. 50%) atau pembatasan burst pulsa frekuensi.
+   - Tampilan visual OSD (On-Screen Display) muncul selama 1.5 detik di layar setiap kali level volume diubah.
+2. **Kontrol Kecerahan Layar (`IO14` / BLK)**:
+   - Digerakkan oleh timer PWM hardware ESP32 LEDC pada frekuensi **5 kHz** (menghindari kedipan kasat mata dan desisan frekuensi audio).
+   - 5 level kecerahan: 20%, 40%, 60%, 80%, 100%. Auto-dimming aktif setelah 30 detik tanpa input tombol.
 
 ---
 
-## 8. Rincian Kebutuhan Fungsional (4 Pilar Fitur)
+## 8. Standarisasi File System MicroSD (FAT32 Directory Tree)
 
-### PILAR 1: Retro Gaming & Entertainment Engine
+Untuk memastikan kompatibilitas ROM game, file log, dan aplikasi pihak ketiga, susunan folder pada kartu MicroSD distandarisasi sebagai berikut:
 
-| ID | Fitur | Deskripsi | Kebutuhan Teknis | Prioritas |
-|---|---|---|---|---|
-| **GAME-01** | **Game Boy Emulator (GB/GBC)** | Menjalankan ROM Game Boy asli dari MicroSD. | Porting Peanut-GB, Frame-skipping 60FPS, palet warna dinamis. | 🔴 High |
-| **GAME-02** | **Native Mini-Games** | Game bawaan tanpa kartu SD: Snake, Tetris, Pong, Space Invaders. | Engine sprite 2D ringan, persistent high score di NVS Flash. | 🔴 High |
-| **GAME-03** | **Chiptune Audio Player** | Pemutar lagu 8-bit retro (file format `.mid`, `.vgm`, `.mod`). | RTTTL / Chiptune sequence parser, visualisator spektrum audio real-time. | 🟡 Medium |
-| **GAME-04** | **Save State Manager** | Menyimpan progres emulator langsung ke MicroSD. | Dump memory RAM emulator ke file `.sav` di MicroSD FAT32. | 🟡 Medium |
-
-### PILAR 2: Wireless & Cyber-Tool (The Pocket Swiss-Army Knife)
-
-| ID | Fitur | Deskripsi | Kebutuhan Teknis | Prioritas |
-|---|---|---|---|---|
-| **WIFI-01** | **Wi-Fi Spectrum & RSSI Analyzer** | Memindai SSID 2.4GHz sekitar, mengukur kuat sinyal dalam grafik waterfall. | Wi-Fi Promiscuous mode, visualisasi waterfall 320x240, deteksi kanal padat. | 🔴 High |
-| **WIFI-02** | **Packet Monitor & AP Tracker** | Mendeteksi keberadaan access point asing dan lalu lintas paket beacon. | Packet sniffer non-intrusif, export log ke MicroSD. | 🟡 Medium |
-| **BLE-01** | **BLE Beacon Scanner** | Mendeteksi perangkat Bluetooth di sekitar (TWS, smartwatch, tracker). | ESP32 BLE GAP Scanner, estimasi jarak via kalkulasi log-distance RSSI. | 🔴 High |
-| **HID-01** | **Bluetooth Virtual Gamepad** | ANTBOY bertindak sebagai controller nirkabel Bluetooth untuk PC/Android. | BLE HID Gamepad profile, latency < 12 ms, mapping D-Pad & tombol fisik. | 🟠 High |
-| **HID-02** | **Wireless Presentation Clicker** | Tombol A/B dan D-Pad digunakan untuk memindah slide presentasi. | BLE Keyboard profile (tombol PgUp, PgDn, F5, Esc). | 🟢 Low |
-
-### PILAR 3: IoT & Smart Home Pocket Controller
-
-| ID | Fitur | Deskripsi | Kebutuhan Teknis | Prioritas |
-|---|---|---|---|---|
-| **IOT-01** | **ESP-NOW Off-Grid Walkie-Talkie** | Komunikasi pesan teks instan antar ANTBOY tanpa internet hingga radius 150m. | ESP-NOW Broadcast/Unicast protocol, keyboard virtual on-screen di layar. | 🟠 High |
-| **IOT-02** | **Smart Home MQTT Dashboard** | Sakelar remote untuk menyalakan perangkat Home Assistant / broker MQTT. | Klien MQTT ringan via Wi-Fi lokal, widget tile status ON/OFF. | 🟡 Medium |
-| **IOT-03** | **Desk Clock & Weather Display** | Jam meja digital dengan sinkronisasi waktu NTP internet dan cuaca lokal. | NTP Client, OpenWeatherMap API fetcher, auto-dimming layar saat idle. | 🟢 Low |
-
-### PILAR 4: Hardware Hacker & Lab Companion (Pemanfaatan Header J4)
-
-| ID | Fitur | Deskripsi | Kebutuhan Teknis | Prioritas |
-|---|---|---|---|---|
-| **LAB-01** | **Portable UART Serial Monitor** | Menampilkan log serial `Serial.print()` dari board eksternal ke layar. | Pin `IO16` (RX), baud rate selector (9600 s.d. 115200), auto-scroll terminal view. | 🔴 High |
-| **LAB-02** | **I2C Bus Scanner & Visualizer** | Memindai alamat sensor I2C yang terhubung ke header dan membaca datanya. | I2C Master pada `IO4` (SDA) & `IO16` (SCL) **bebas konflik**, auto-detect sensor. | 🟠 High |
-| **LAB-03** | **PWM & Frequency Signal Generator** | Menghasilkan sinyal PWM untuk pengujian motor servo atau dimmer LED. | ESP32 LEDC PWM generator pada pin `IO25` atau `IO4`, slider duty cycle via D-Pad. | 🟡 Medium |
-| **LAB-04** | **Mini Logic Probe** | Membaca status logika (HIGH, LOW, FREQ) pada sirkuit eksternal. | Digital input polling / interrupt counter pada pin `IO4`, visualisasi status. | 🟡 Medium |
+```text
+SDCARD:/ (FAT32, Cluster 32KB)
+├── antos/
+│   ├── settings.json          # Konfigurasi sistem (Wi-Fi, Volume, Kecerahan, Tema)
+│   ├── theme/                 # Palet warna retro & ikon kustom
+│   └── boot.log               # Catatan diagnostik sistem
+├── roms/
+│   ├── gb/                    # Berkas ROM Game Boy (.gb / .gbc)
+│   └── saves/                 # Berkas save-state emulator (.sav)
+├── apps/                      # Modul aplikasi executable komunitas (.bin)
+├── music/                     # Koleksi lagu chiptune 8-bit (.mid, .vgm, .rtttl)
+├── logs/
+│   ├── wifi_survey.csv        # Ekspor data analisis sinyal Wi-Fi
+│   ├── ble_devices.csv        # Log perangkat Bluetooth sekitar
+│   └── uart_capture.txt       # Rekaman sesi Serial Monitor lab
+└── screenshots/               # Tangkapan layar konsol (format .bmp 320x240)
+```
 
 ---
 
-## 9. Bill of Materials (BOM) — Daftar Komponen Produksi
+## 9. SDK Pengembang & Ekosistem Komunitas (`AntBoy-Core.h`)
 
-Daftar komponen resmi untuk perakitan kit komersial (Tier 1 & Tier 2):
+Untuk memungkinkan pengembang pihak ketiga membuat game atau tool mandiri tanpa harus mempelajari register perangkat keras, disediakan pustaka resmi **`AntBoy-Core`**:
+
+```cpp
+#include <AntBoy.h>
+
+void setup() {
+    AntBoy.begin(); // Menginisialisasi Layar 320x240, SPI, Tombol, ADC, & SD
+    AntBoy.Display.fillScreen(COLOR_BLACK);
+    AntBoy.Audio.playTone(2093, 100); // Nada konfirmasi boot
+}
+
+void loop() {
+    AntBoy.update(); // Polling tombol dan D-Pad (latensi < 5ms)
+
+    if (AntBoy.Buttons.wasPressed(BTN_A)) {
+        AntBoy.Audio.playTone(2637, 50); // Feedback klik tombol
+    }
+
+    Direction dir = AntBoy.Buttons.readDpad();
+    if (dir == DIR_RIGHT) {
+        // Gerakkan karakter ke kanan
+    }
+
+    AntBoy.Display.render();
+}
+```
+
+### API Abstraction Layer:
+- **`AntBoy.Buttons`**: `isPressed(btn)`, `wasPressed(btn)`, `readDpad()`, `getADC_V()`.
+- **`AntBoy.Display`**: `drawPixel()`, `drawSprite()`, `printText()`, `pushFrameDMA()`.
+- **`AntBoy.Audio`**: `playTone(freq, dur)`, `playRTTTL(tune)`, `setVolume(lvl)`.
+- **`AntBoy.SD`**: `exists(path)`, `readString(path)`, `writeLog(path, data)`.
+- **`AntBoy.Header`**: Akses aman ke pin bebas `IO4`, `IO16`, dan `IO25`.
+
+---
+
+## 10. Pipeline Distribusi Firmware: Web Flasher & OTA Update
+
+Untuk memudahkan pengguna awam (non-programmer) memasang game baru atau memperbarui AntOS tanpa perlu menginstal PlatformIO / VS Code:
+
+1. **Zero-Install Web Serial Flasher (ESP Web Tools)**:
+   - Pengguna cukup membuka peramban Google Chrome / Microsoft Edge di komputer.
+   - Sambungkan ANTBOY via kabel USB ke port Wemos D1 Mini.
+   - Buka situs web resmi `antboy.dev/flash` dan klik tombol **"Install AntOS"**. Web Serial API langsung mem-flash firmware, bootloader, dan partisi SPIFFS secara otomatis dalam 60 detik.
+2. **OTA (Over-The-Air) Wi-Fi Update**:
+   - Di dalam menu Pengaturan AntOS, pilih opsi **"Check System Update"**.
+   - ANTBOY akan tersambung ke Wi-Fi rumah, memeriksa *GitHub Releases API* resmi, mengunduh file `.bin` terbaru, dan me-reboot sistem secara mandiri.
+
+---
+
+## 11. Prosedur Quality Control (QC) & Factory Test Suite
+
+Sebelum papan PCB atau kit Tier 2 & Tier 3 dikirimkan ke pembeli, setiap unit wajib lolos uji firmware diagnostik pabrik (`factory_test.bin`):
+
+```text
+                   ALUR DIAGNOSTIK FACTORY TEST
+[Start Test] -> [Display 5-Color Screen] -> [10-Button Matrix Press]
+                     |                               |
+          (No Dead Pixels?)                 (All Keys Turn Green)
+                     |                               |
+[Pass/Fail]  <- [Wi-Fi/BLE RSSI Pass]   <- [MicroSD R/W 512KB Test]
+```
+
+1. **Uji Layar (Dead Pixel Check)**: Layar menyala bergantian warna Merah, Hijau, Biru, Putih, dan Hitam untuk memastikan panel IPS bebas *dead pixel* dan *backlight bleed*.
+2. **Uji Matriks Tombol & Kalibrasi ADC**: Menampilkan gambar konsol di layar. Setiap kali tombol A, B, SEL, STA, MEN, VOL, dan 4 arah D-Pad ditekan, ikon tombol di layar berubah hijau. Nilai toleransi ADC D-Pad `IO34` dan `IO35` ditampilkan secara numerik.
+3. **Uji Baca-Tulis MicroSD**: Menulis berkas uji 512 KB, memverifikasi checksum, dan memastikan kecepatan baca ≥ 1.5 MB/s.
+4. **Uji Akustik Buzzer**: Memainkan tangga nada dari 1.7 kHz s.d. 3.1 kHz untuk memastikan solderan buzzer terpasang sempurna.
+5. **Uji Sinyal Nirkabel**: Memindai minimal 1 sinyal SSID Wi-Fi dan 1 sinyal suar BLE untuk memastikan antena chip ESP32 bekerja prima.
+
+---
+
+## 12. Aspek Legalitas, Etika & Regulasi Nirkabel (Pilar 2)
+
+Perangkat ini dirancang sebagai platform edukasi, riset, dan audit diagnostik jaringan:
+1. **Mode Pasif (Passive Monitoring Only)**: Seluruh fitur penganalisis Wi-Fi dan BLE pada firmware bawaan pabrik beroperasi dalam mode *promiscuous listener* non-intrusif. ANTBOY tidak memancarkan paket penyerangan (*deauthentication / denial of service*).
+2. **Kepatuhan Regulasi Frekuensi**: Penerimaan sinyal hanya terbatas pada pita frekuensi bebas izin (*unlicensed ISM Band 2.400 GHz – 2.4835 GHz*) sesuai ketetapan Kominfo dan FCC Part 15.
+3. **Pernyataan Penafian (Disclaimer)**: Setiap pengguna bertanggung jawab penuh atas penggunaan perangkat sesuai hukum dan etika siber yang berlaku.
+
+---
+
+## 13. Strategi Komersialisasi & Perlindungan Anti-Kloning
+
+### 13.1 Model Lisensi & Dual-Tier Software
+- **Open-Core**: Kernel AntOS, emulasi game klasik, dan Developer SDK bersifat open-source (MIT License) untuk membangun komunitas pembuat game dan maker.
+- **Official Cloud & Verified Plugins**: Fitur integrasi cloud canggih, sinkronisasi save-state online, dan preset modul ekosistem terverifikasi dikunci menggunakan verifikasi digital resmi.
+
+### 13.2 Proteksi Kekayaan Intelektual (Hardware & Firmware)
+1. **Distribusi Gerber Terisolasi**: Sumber desain skematik dan file CAD PCB KiCad tetap dilindungi secara privat. Pengguna umum hanya dapat mencetak papan berdasarkan file Gerber produksi (`ANTBOY_V4.zip`).
+2. **eFuse Unique Identity Verification**: Setiap unit resmi memiliki identitas eFuse MAC Address yang terdaftar di basis data Anton Prafanto, memberikan status *"Official ANTBOY Hardware"* dan akses ke pembaruan otomatis tanpa hambatan.
+
+### 13.3 Paket Penjualan Resmi
+
+| Paket Penjualan | Target Pasar | Isi Paket Penjualan |
+|---|---|---|
+| **Tier 1: Bare PCB Only** | DIY Maker & Solder Enthusiast | Papan PCB ANTBOY produksi pabrik + file panduan perakitan digital & BOM lengkap. |
+| **Tier 2: Complete DIY Kit** | Mahasiswa / Hobbyist yang ingin belajar solder | Papan PCB + Modul ESP32 + LCD ST7789 + seluruh komponen SMD 1206/0805 dan PTH siap rakit. |
+| **Tier 3: Ready-to-Play Edition** | Kolektor & Pengguna Langsung | Perangkat sudah dirakit & diuji penuh (*factory tested*), terpasang casing 3D print akrilik/PLA, dan MicroSD terisi game/tools. |
+| **Tier 4: Modular Add-ons** | Pengguna yang ingin upgrade fungsi | Shield ekspansi terpisah (RF Cyber Pack, Sensor Pack, LoRa Pack). |
+
+---
+
+## 14. Bill of Materials (BOM) — Daftar Komponen Produksi
 
 | No | Referensi | Deskripsi Komponen | Package / Footprint | Jumlah | Catatan Sumber / Fungsi |
 |---|---|---|---|---|---|
@@ -282,38 +380,28 @@ Daftar komponen resmi untuk perakitan kit komersial (Tier 1 & Tier 2):
 
 ---
 
-## 10. Roadmap Pengembangan & Rilis
+## 15. Roadmap Pengembangan & Eksekusi
 
 ```mermaid
 gantt
-    title Roadmap Pengembangan ANTBOY (2026)
+    title Roadmap Eksekusi Komersial ANTBOY (2026)
     dateFormat  YYYY-MM-DD
-    section Fase 1: Core OS
+    section Fase 1: Core OS & SDK
     Hardware Diagnostic & Stabilisasi       :done,    des1, 2026-09-30, 2026-10-07
-    AntOS Launcher & Tile GUI Engine        :active,  des2, 2026-10-08, 2026-10-25
-    MicroSD Storage & FAT32 Integration    :         des3, 2026-10-26, 2026-11-05
+    AntOS Launcher & AntBoy-Core SDK        :active,  des2, 2026-10-08, 2026-10-25
+    MicroSD Storage & Standard Directory    :         des3, 2026-10-26, 2026-11-05
     section Fase 2: Gaming & Fun
     Native 8-bit Mini Games (Snake/Tetris)  :         des4, 2026-11-06, 2026-11-20
     Game Boy Emulator (Peanut-GB Port)      :         des5, 2026-11-21, 2026-12-15
     section Fase 3: Tool & Lab
     Wi-Fi & BLE Analyzer Modules           :         des6, 2026-12-16, 2027-01-10
     UART Terminal & I2C Lab Scanner         :         des7, 2027-01-11, 2027-01-31
-    section Fase 4: Komersialisasi
-    Desain Casing 3D Print (Snap-fit)       :         des8, 2027-02-01, 2027-02-20
-    Dokumentasi Kit DIY & Rilis Penjualan   :         des9, 2027-02-21, 2027-03-15
+    section Fase 4: Produksi & Rilis
+    Factory Test Firmware (QC Jig)          :         des8, 2027-02-01, 2027-02-15
+    Casing 3D Print (Snap-Fit STL)          :         des9, 2027-02-16, 2027-02-28
+    Web Serial Flasher & Peluncuran Publik  :         des10, 2027-03-01, 2027-03-25
 ```
 
 ---
 
-## 11. Model Komersialisasi Produk
-
-| Paket Penjualan | Target Pasar | Isi Paket Penjualan |
-|---|---|---|
-| **Tier 1: Bare PCB Only** | DIY Maker & Solder Enthusiast | Papan PCB ANTBOY produksi pabrik + file panduan perakitan digital & BOM lengkap. |
-| **Tier 2: Complete DIY Kit** | Mahasiswa / Hobbyist yang ingin belajar solder | Papan PCB + Modul ESP32 + LCD ST7789 + seluruh komponen SMD 1206/0805 dan PTH siap rakit. |
-| **Tier 3: Ready-to-Play Edition** | Kolektor & Pengguna Langsung | Perangkat sudah dirakit & diuji penuh (*factory tested*), terpasang casing 3D print akrilik/PLA, dan MicroSD terisi game/tools. |
-| **Tier 4: Modular Add-ons** | Pengguna yang ingin upgrade fungsi | Shield ekspansi terpisah (RF Cyber Pack, Sensor Pack, LoRa Pack). |
-
----
-
-*Dokumen ini merupakan panduan spesifikasi teknis dan komersialisasi resmi ANTBOY (2026). Dilarang menyebarkan skematik mentah atau file desain PCB KiCad tanpa izin pemilik hak cipta.*
+*Dokumen ini merupakan spesifikasi komersial dan panduan rekayasa resmi ANTBOY (2026). Hak Cipta dilindungi undang-undang.*
