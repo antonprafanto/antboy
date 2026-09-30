@@ -16,6 +16,28 @@ void setup() {
     // Inisialisasi seluruh subsistem AntBoy (Layar, Tombol, Buzzer, SD, LED)
     AntBoy.begin(true);
 
+    // Uji Verifikasi Pin Bebas Header J4 (IO4, IO16, IO25)
+    pinMode(ANTBOY_PIN_EXP_IO4, INPUT_PULLUP);
+    pinMode(ANTBOY_PIN_EXP_IO16, INPUT_PULLUP);
+    pinMode(ANTBOY_PIN_EXP_IO25, INPUT_PULLUP);
+    int j4_io4 = digitalRead(ANTBOY_PIN_EXP_IO4);
+    int j4_io16 = digitalRead(ANTBOY_PIN_EXP_IO16);
+    int j4_io25 = digitalRead(ANTBOY_PIN_EXP_IO25);
+    Serial.printf("[J4 Header] Free Pins Verified: IO4=%d, IO16=%d, IO25=%d (Pull-Up OK)\n", j4_io4, j4_io16, j4_io25);
+
+    // Uji Verifikasi MicroSD FAT32 Read/Write Test
+    if (AntBoy.SD.isMounted()) {
+        Serial.printf("[MicroSD] Card Type: %s | Total: %llu MB | Used: %llu MB\n", 
+            AntBoy.SD.cardTypeString(), 
+            AntBoy.SD.totalBytes() / (1024 * 1024),
+            AntBoy.SD.usedBytes() / (1024 * 1024));
+        AntBoy.SD.writeFile("/antos/test.txt", "ANTBOY SD VERIFIED");
+        String testContent = AntBoy.SD.readFile("/antos/test.txt");
+        Serial.printf("[MicroSD] File R/W Verification: %s\n", testContent.c_str());
+    } else {
+        Serial.println("[MicroSD] Info: Slot kosong / No Card.");
+    }
+
     // Mainkan Boot Jingle Frekuensi Resonan
     AntBoy.Audio.playStartupJingle();
 

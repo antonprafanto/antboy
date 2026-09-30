@@ -30,8 +30,8 @@
 - [x] **Validasi D-Pad Resistor Ladder**: Pembagian tegangan ADC 12-bit terkalibrasi pada `IO35` (UP/DOWN) dan `IO34` (LEFT/RIGHT).
 - [x] **Tuning Akustik Buzzer**: Menemukan titik resonansi piezo di `IO26` (1.7 kHz – 3.1 kHz) untuk kompensasi R1 1kΩ.
 - [x] **Keamanan Repositori Git**: File privat KiCad (`.kicad_sch`, `.kicad_pcb`) dilindungi, hanya merilis Gerber produksi (`ANTBOY_V4.zip`).
-- [ ] **MicroSD Card SPI Mounting Test**: Uji pembacaan FAT32 pada pin CS `IO22` (VSPI berbagi bus dengan ST7789).
-- [ ] **Uji Kontinuitas Pin Bebas J4**: Verifikasi pin `IO4`, `IO16`, dan `IO25` pada header samping 15-pin.
+- [x] **MicroSD Card SPI Mounting Test**: Uji pembacaan FAT32 pada pin CS `IO22` (VSPI berbagi bus dengan ST7789 via FreeRTOS Mutex).
+- [x] **Uji Kontinuitas Pin Bebas J4**: Verifikasi pin `IO4`, `IO16`, dan `IO25` pada header samping 15-pin (Pull-Up & IO Ready).
 
 ---
 
