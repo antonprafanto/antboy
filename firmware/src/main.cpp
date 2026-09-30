@@ -95,10 +95,11 @@ void playTone(int freq, int durationMs) {
 }
 
 void playStartupMelody() {
-  playTone(523, 80); delay(100);  // C5
-  playTone(659, 80); delay(100);  // E5
-  playTone(784, 80); delay(100);  // G5
-  playTone(1046, 160); delay(180); // C6 (Coin / Startup sound)
+  // Melodi boot jingle frekuensi tinggi pada rentang resonansi piezo (1.7 kHz - 3.1 kHz)
+  playTone(1760, 70); delay(85);  // A6
+  playTone(2093, 70); delay(85);  // C7
+  playTone(2637, 90); delay(105); // E7
+  playTone(3136, 180); delay(200); // G7 (Coin jingle - nada puncak resonansi)
 }
 
 void setup() {
@@ -226,13 +227,21 @@ void loop() {
     spriteX += moveSpeed;
   }
 
-  // Efek tombol A dan B
+  // Efek tombol A, B, dan tombol fungsi dengan frekuensi resonansi piezo (1.7 - 2.85 kHz)
   if (pressA) {
     spriteColor = COLOR_RED;
-    playTone(880, 20); // Nada A
+    playTone(2400, 45); // Nada A (2.4 kHz frekuensi resonansi tajam)
   } else if (pressB) {
     spriteColor = COLOR_CYAN;
-    playTone(1320, 20); // Nada B
+    playTone(2850, 45); // Nada B (2.85 kHz laser chime)
+  } else if (pressStart) {
+    playTone(2093, 40); // START: 2.1 kHz
+  } else if (pressSelect) {
+    playTone(1975, 40); // SELECT: 1.97 kHz
+  } else if (pressMenu) {
+    playTone(1760, 35); // MENU: 1.76 kHz
+  } else if (pressVol) {
+    playTone(2349, 35); // VOL: 2.35 kHz
   } else {
     spriteColor = COLOR_YELLOW;
   }
