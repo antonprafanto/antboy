@@ -71,13 +71,13 @@
   #define COLOR_DARKGREEN   0x03E0
 #endif
 
-// Resolusi Layar Standar
-const int SCREEN_W = 240;
-const int SCREEN_H = 320;
+// Resolusi Layar Standar (Landscape 320x240)
+const int SCREEN_W = 320;
+const int SCREEN_H = 240;
 
 // State Karakter / Sprite yang dikontrol
-int spriteX = SCREEN_W / 2;
-int spriteY = 120;
+int spriteX = 80;
+int spriteY = 95;
 int prevSpriteX = spriteX;
 int prevSpriteY = spriteY;
 const int spriteSize = 14;
@@ -134,33 +134,40 @@ void setup() {
   // 4. Inisialisasi Layar
   #if USE_ILI9341
     tft.begin();
-    tft.setRotation(0); // 0 = Portrait (240x320)
+    tft.setRotation(3); // 3 = Landscape (320x240)
   #elif USE_ST7789
     tft.init(240, 320);
-    tft.setRotation(2); // 2 = Portrait orientasi PCB Antboy
-    tft.invertDisplay(true); // Wajib true untuk modul ST7789 IPS agar warna tidak negatif/terbalik
+    tft.setRotation(3); // 3 = Landscape (320x240, header di atas, menghadap tombol di bawah)
+    tft.invertDisplay(true); // Wajib true untuk modul ST7789 IPS agar warna tidak terbalik
   #elif USE_ST7735
     tft.initR(INITR_BLACKTAB);
-    tft.setRotation(0);
+    tft.setRotation(3);
   #endif
 
   tft.fillScreen(COLOR_BLACK);
-  Serial.println("[OK] Display Initialized");
+  Serial.println("[OK] Display Initialized (Landscape 320x240)");
 
-  // Render Header UI
-  tft.fillRect(0, 0, SCREEN_W, 32, COLOR_NAVY);
-  tft.drawFastHLine(0, 32, SCREEN_W, COLOR_CYAN);
+  // Render Header UI (Landscape)
+  tft.fillRect(0, 0, SCREEN_W, 26, COLOR_NAVY);
+  tft.drawFastHLine(0, 26, SCREEN_W, COLOR_CYAN);
   tft.setTextColor(COLOR_WHITE);
   tft.setTextSize(2);
-  tft.setCursor(20, 8);
+  tft.setCursor(10, 6);
   tft.print("ANTBOY (2026)");
+  tft.setTextSize(1);
+  tft.setTextColor(COLOR_CYAN);
+  tft.setCursor(205, 10);
+  tft.print("Hardware Test");
 
-  // Area arena kontrol
-  tft.drawRect(8, 42, SCREEN_W - 16, 150, COLOR_DARKGREY);
+  // Area arena kontrol di sisi kiri
+  tft.drawRect(6, 32, 150, 126, COLOR_DARKGREY);
   tft.setTextColor(COLOR_DARKGREY);
   tft.setTextSize(1);
-  tft.setCursor(16, 48);
-  tft.print("Sprite Arena (Use D-Pad to move)");
+  tft.setCursor(12, 36);
+  tft.print("Sprite Arena");
+
+  // Garis pemisah bawah
+  tft.drawFastHLine(0, 164, SCREEN_W, COLOR_DARKGREY);
 
   // Suara Startup
   playStartupMelody();
@@ -200,22 +207,22 @@ void loop() {
   digitalWrite(LED_PIN, anyInput ? HIGH : LOW);
 
   // =========================================================================
-  // 3. LOGIKA GERAKAN SPRITE
+  // 3. LOGIKA GERAKAN SPRITE (ARENA BOUNDARIES)
   // =========================================================================
   int moveSpeed = 4;
   prevSpriteX = spriteX;
   prevSpriteY = spriteY;
 
-  if (pressUp && spriteY > 60) {
+  if (pressUp && spriteY > 48) {
     spriteY -= moveSpeed;
   }
-  if (pressDown && spriteY < 172) {
+  if (pressDown && spriteY < 144) {
     spriteY += moveSpeed;
   }
-  if (pressLeft && spriteX > 22) {
+  if (pressLeft && spriteX > 18) {
     spriteX -= moveSpeed;
   }
-  if (pressRight && spriteX < SCREEN_W - 36) {
+  if (pressRight && spriteX < 144) {
     spriteX += moveSpeed;
   }
 
@@ -240,59 +247,74 @@ void loop() {
   }
 
   // =========================================================================
-  // 4. VISUALISASI STATUS CONTROLLER (GAMEPAD HUD)
+  // 4. VISUALISASI STATUS CONTROLLER (GAMEPAD HUD - SISI KANAN)
   // =========================================================================
-  int hudY = 200;
+  tft.setTextColor(COLOR_DARKGREY, COLOR_BLACK);
+  tft.setTextSize(1);
+  tft.setCursor(168, 36);
+  tft.print("Virtual Controller:");
 
   // Kotak Virtual D-Pad
-  tft.fillRect(20, hudY, 18, 14, pressLeft  ? COLOR_GREEN : COLOR_DARKGREY);
-  tft.fillRect(38, hudY - 14, 14, 18, pressUp    ? COLOR_GREEN : COLOR_DARKGREY);
-  tft.fillRect(38, hudY + 10, 14, 18, pressDown  ? COLOR_GREEN : COLOR_DARKGREY);
-  tft.fillRect(48, hudY, 18, 14, pressRight ? COLOR_GREEN : COLOR_DARKGREY);
+  int dpadCX = 202;
+  int dpadCY = 76;
+  tft.fillRect(dpadCX - 18, dpadCY - 6, 14, 12, pressLeft  ? COLOR_GREEN : COLOR_DARKGREY);
+  tft.fillRect(dpadCX + 4,  dpadCY - 6, 14, 12, pressRight ? COLOR_GREEN : COLOR_DARKGREY);
+  tft.fillRect(dpadCX - 6,  dpadCY - 18, 12, 14, pressUp    ? COLOR_GREEN : COLOR_DARKGREY);
+  tft.fillRect(dpadCX - 6,  dpadCY + 4,  12, 14, pressDown  ? COLOR_GREEN : COLOR_DARKGREY);
 
   // Tombol Virtual A & B
-  tft.fillCircle(210, hudY + 4, 10, pressA ? COLOR_RED   : COLOR_DARKGREY);
-  tft.fillCircle(180, hudY + 16, 10, pressB ? COLOR_BLUE : COLOR_DARKGREY);
+  tft.fillCircle(256, 80, 9, pressB ? COLOR_BLUE : COLOR_DARKGREY);
+  tft.fillCircle(286, 68, 9, pressA ? COLOR_RED  : COLOR_DARKGREY);
   tft.setTextColor(COLOR_WHITE);
-  tft.setTextSize(1);
-  tft.setCursor(207, hudY);     tft.print("A");
-  tft.setCursor(177, hudY + 12); tft.print("B");
+  tft.setCursor(253, 76); tft.print("B");
+  tft.setCursor(283, 64); tft.print("A");
 
   // Tombol Virtual Kontrol (MENU, VOL, SELECT, START)
-  tft.fillRect(80,  hudY - 6, 20, 8, pressMenu   ? COLOR_MAGENTA : COLOR_DARKGREY);
-  tft.fillRect(105, hudY - 6, 20, 8, pressVol    ? COLOR_MAGENTA : COLOR_DARKGREY);
-  tft.fillRect(80,  hudY + 14, 20, 8, pressSelect ? COLOR_YELLOW  : COLOR_DARKGREY);
-  tft.fillRect(105, hudY + 14, 20, 8, pressStart  ? COLOR_YELLOW  : COLOR_DARKGREY);
+  int btnY = 118;
+  tft.fillRect(166, btnY, 32, 10, pressMenu   ? COLOR_MAGENTA : COLOR_DARKGREY);
+  tft.fillRect(202, btnY, 32, 10, pressVol    ? COLOR_MAGENTA : COLOR_DARKGREY);
+  tft.fillRect(238, btnY, 34, 10, pressSelect ? COLOR_YELLOW  : COLOR_DARKGREY);
+  tft.fillRect(276, btnY, 34, 10, pressStart  ? COLOR_YELLOW  : COLOR_DARKGREY);
 
-  tft.setCursor(82,  hudY - 16); tft.print("MEN");
-  tft.setCursor(107, hudY - 16); tft.print("VOL");
-  tft.setCursor(82,  hudY + 24); tft.print("SEL");
-  tft.setCursor(107, hudY + 24); tft.print("STA");
+  tft.setTextColor(COLOR_WHITE, COLOR_BLACK);
+  tft.setCursor(172, btnY + 12); tft.print("MEN");
+  tft.setCursor(208, btnY + 12); tft.print("VOL");
+  tft.setCursor(244, btnY + 12); tft.print("SEL");
+  tft.setCursor(282, btnY + 12); tft.print("STA");
 
   // =========================================================================
-  // 5. LIVE TELEMETRY & DEBUG VALUES
+  // 5. LIVE TELEMETRY & DEBUG VALUES (SISI BAWAH)
   // =========================================================================
   tft.setTextColor(COLOR_WHITE, COLOR_BLACK);
-  tft.setCursor(10, 260);
-  tft.printf("ADC IO35 (V): %4d [UP/DN] ", adcVert);
+  tft.setCursor(8, 172);
+  tft.printf("ADC IO35 (UP/DN): %4d   |   IO34 (LF/RT): %4d  ", adcVert, adcHorz);
 
-  tft.setCursor(10, 275);
-  tft.printf("ADC IO34 (H): %4d [LF/RT] ", adcHorz);
-
-  tft.setCursor(10, 292);
+  tft.setCursor(8, 192);
+  tft.print("D-PAD: ");
   tft.setTextColor(COLOR_GREEN, COLOR_BLACK);
-  tft.print("Button Status: ");
+  if (pressUp)         tft.print("[UP]    ");
+  else if (pressDown)  tft.print("[DOWN]  ");
+  else if (pressLeft)  tft.print("[LEFT]  ");
+  else if (pressRight) tft.print("[RIGHT] ");
+  else                 tft.print("[CENTER]");
+
+  tft.setCursor(160, 192);
+  tft.setTextColor(COLOR_WHITE, COLOR_BLACK);
+  tft.print("STATUS: ");
+  tft.setTextColor(anyInput ? COLOR_YELLOW : COLOR_DARKGREY, COLOR_BLACK);
+  tft.printf("%-14s", anyInput ? "ACTIVE" : "IDLE");
+
+  tft.setCursor(8, 212);
+  tft.setTextColor(COLOR_CYAN, COLOR_BLACK);
+  tft.print("KEYS: ");
   if (pressA)      tft.print("A ");
   if (pressB)      tft.print("B ");
-  if (pressSelect) tft.print("SELECT ");
+  if (pressSelect) tft.print("SEL ");
   if (pressStart)  tft.print("START ");
   if (pressMenu)   tft.print("MENU ");
   if (pressVol)    tft.print("VOL ");
-  if (pressUp)     tft.print("UP ");
-  if (pressDown)   tft.print("DOWN ");
-  if (pressLeft)   tft.print("LEFT ");
-  if (pressRight)  tft.print("RIGHT ");
-  if (!anyInput)   tft.print("- IDLE -        ");
+  if (!anyInput)   tft.print("-                   ");
+  else             tft.print("                    ");
 
   delay(25); // Refresh rate ~40 FPS
 }
