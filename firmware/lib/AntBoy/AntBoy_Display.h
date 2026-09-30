@@ -46,4 +46,5 @@ public:
 
 private:
     uint8_t _brightnessPercent = 100;
+    uint8_t _ledcChannel = 1;
 };

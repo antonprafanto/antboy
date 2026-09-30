@@ -60,4 +60,7 @@ private:
 
     // Filter median ADC 3-sampel
     int readFilteredADC(int pin);
+
+    // Tracking combo holding
+    mutable uint32_t _comboStartTime = 0;
 };

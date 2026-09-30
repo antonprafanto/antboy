@@ -7,6 +7,12 @@ void AntBoyClass::begin(bool initSD) {
     Power.begin();
     setLED(true); // Nyalakan LED saat boot
 
+    // Pastikan kedua pin CS berstatus HIGH (Deselected) sebelum bus SPI aktif
+    pinMode(ANTBOY_PIN_SD_CS, OUTPUT);
+    digitalWrite(ANTBOY_PIN_SD_CS, HIGH);
+    pinMode(ANTBOY_PIN_TFT_CS, OUTPUT);
+    digitalWrite(ANTBOY_PIN_TFT_CS, HIGH);
+
     // 2. Inisialisasi Audio Buzzer dengan hardware LEDC PWM duty cycle
     Audio.begin();
 

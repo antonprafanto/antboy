@@ -5,9 +5,10 @@ AntBoy_DisplayClass::AntBoy_DisplayClass()
 }
 
 void AntBoy_DisplayClass::begin() {
-    // 1. Inisialisasi Backlight (IO14)
+    // 1. Inisialisasi Backlight PWM Hardware LEDC pada IO14 (5 kHz, 8-bit)
     pinMode(ANTBOY_PIN_TFT_BLK, OUTPUT);
-    digitalWrite(ANTBOY_PIN_TFT_BLK, HIGH); // Default ON
+    ledcSetup(_ledcChannel, 5000, 8);
+    ledcAttachPin(ANTBOY_PIN_TFT_BLK, _ledcChannel);
 
     // 2. Inisialisasi Layar ST7789
     init(240, 320, SPI_MODE3);
@@ -23,9 +24,9 @@ void AntBoy_DisplayClass::setBrightness(uint8_t percent) {
     if (percent > 100) percent = 100;
     _brightnessPercent = percent;
 
-    // Gunakan analogWrite (otomatis memetakan ke hardware LEDC timer ESP32)
+    // Modulasi duty cycle 8-bit (0 - 255) pada timer LEDC 5 kHz
     uint8_t duty = (uint8_t)((uint32_t)percent * 255 / 100);
-    analogWrite(ANTBOY_PIN_TFT_BLK, duty);
+    ledcWrite(_ledcChannel, duty);
 }
 
 void AntBoy_DisplayClass::drawCenteredText(const char* text, int y, uint16_t color, uint8_t size) {

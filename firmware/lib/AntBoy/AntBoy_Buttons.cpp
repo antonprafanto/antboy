@@ -119,17 +119,14 @@ AntDirection AntBoy_ButtonsClass::readDpad() const {
 
 bool AntBoy_ButtonsClass::isHoldingCombo(AntButton btn1, AntButton btn2, uint32_t holdTimeMs) const {
     if (isPressed(btn1) && isPressed(btn2)) {
-        static uint32_t comboStart = 0;
-        if (comboStart == 0) {
-            comboStart = millis();
+        if (_comboStartTime == 0) {
+            _comboStartTime = millis();
         }
-        if (millis() - comboStart >= holdTimeMs) {
+        if (millis() - _comboStartTime >= holdTimeMs) {
             return true;
         }
     } else {
-        // Reset jika salah satu dilepas
-        static uint32_t comboStart = 0;
-        comboStart = 0;
+        _comboStartTime = 0;
     }
     return false;
 }
