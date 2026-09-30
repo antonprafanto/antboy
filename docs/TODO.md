@@ -37,13 +37,17 @@
 
 ### FASE 1: AntBoy-Core SDK & HAL (Pondasi Software)
 *Fokus: Membuat pustaka `AntBoy.h` agar kodingan game/app bersih, modular, dan mudah digunakan komunitas.*
+- [ ] **Konfigurasi PlatformIO & Partisi Flash (`partitions.csv`)**:
+  - [ ] Buat skema partisi kustom 4MB (`partitions.csv`) agar muat binary besar (AntOS + Emulator + Wi-Fi + BLE butuh partisi app ~2.0 MB).
+  - [ ] Optimasi compiler build flags di `platformio.ini` (`-O2`, CPU Freq 240MHz, `-DCORE_DEBUG_LEVEL=0`).
 - [ ] **Struktur Folder SDK**: Buat direktori `firmware/lib/AntBoy/` dengan file `AntBoy.h` dan `AntBoy.cpp`.
 - [ ] **Modul `AntBoy_Buttons`**:
   - [ ] Debouncing internal (filter bising tombol fisik).
   - [ ] Fungsi event: `isPressed(btn)`, `wasPressed(btn)`, `wasReleased(btn)`.
   - [ ] Pembacaan arah D-Pad via enum: `readDpad()` (`DIR_NONE`, `DIR_UP`, `DIR_DOWN`, `DIR_LEFT`, `DIR_RIGHT`).
-- [ ] **Modul `AntBoy_Display`**:
-  - [ ] Wrapper grafis berbasis TFT_eSPI / Adafruit_GFX yang dioptimasi untuk ST7789 320x240.
+  - [ ] **System-Wide Shortcuts**: Deteksi kombinasi tombol global (e.g. tahan `SELECT + START` 2 detik untuk keluar game ke Launcher, tekan `MENU` untuk in-game menu).
+- [ ] **Modul `AntBoy_Display` (High-Speed DMA Rendering)**:
+  - [ ] Driver ST7789 landscape 320x240 teroptimasi dengan SPI DMA (*Direct Memory Access*) untuk target rendering 60 FPS tanpa tearing.
   - [ ] Fungsi render buffer: `fillScreen()`, `drawSprite()`, `printText()`, dan dukungan font retro.
   - [ ] Brightness control via PWM timer LEDC pada pin `IO14` (5 kHz).
 - [ ] **Modul `AntBoy_Audio`**:
@@ -53,8 +57,11 @@
 - [ ] **Modul `AntBoy_SD` & SPI Mutex**:
   - [ ] Inisialisasi MicroSD pada `IO22` dengan FreeRTOS Mutex (`spi_bus_mutex`) agar aman berbagi bus dengan layar.
   - [ ] Helper pembaca file cepat untuk memuat teks, gambar, dan binary data.
+  - [ ] Graceful unmount & polling handler untuk mendeteksi kartu dicabut tanpa crash.
 - [ ] **Modul `AntBoy_Power`**:
   - [ ] Konfigurasi Deep Sleep dengan interrupt wakeup eksternal pada tombol MENU (`IO13`) atau START (`IO39`).
+- [ ] **Tools Bantu Aset (`tools/`)**:
+  - [ ] Skrip Python `tools/png_to_rgb565.py` untuk konversi gambar PNG/BMP ke C-array format RGB565.
 
 ---
 
