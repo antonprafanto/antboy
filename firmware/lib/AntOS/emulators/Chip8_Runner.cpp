@@ -251,12 +251,12 @@ void Chip8_RunnerClass::run() {
     AntBoy.Display.fillRect(0, fy, ANTBOY_SCREEN_WIDTH, 20, ANTOS_COLOR_BG_PANEL);
     AntBoy.Display.setTextSize(1);
     AntBoy.Display.setTextColor(ANTOS_COLOR_TEXT_DIM, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawCenteredText("[^/v] Paddle  |  SELECT + START: Exit", fy + 6, ANTOS_COLOR_TEXT_DIM, 1);
+    AntBoy.Display.drawCenteredText("[^/v] Paddle  |  [MENU] / [B]: Keluar", fy + 6, ANTOS_COLOR_TEXT_DIM, 1);
 
     while (isRunning) {
         AntBoy.update();
 
-        if (AntBoy.checkExitShortcut() || AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+        if (AntBoy.checkExitShortcut() || AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             isRunning = false;
             break;
         }

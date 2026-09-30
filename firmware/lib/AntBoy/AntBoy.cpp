@@ -51,5 +51,5 @@ void AntBoyClass::toggleLED() {
 }
 
 bool AntBoyClass::checkExitShortcut() {
-    return Buttons.isHoldingCombo(ANT_BTN_SELECT, ANT_BTN_START, 2000);
+    return Buttons.isHoldingCombo(ANT_BTN_SELECT, ANT_BTN_START, 500);
 }

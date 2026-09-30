@@ -1,5 +1,6 @@
 #include "TetrisGame.h"
 #include <Preferences.h>
+#include "../AntOS_PauseModal.h"
 
 TetrisGameClass TetrisGame;
 
@@ -341,6 +342,17 @@ void TetrisGameClass::run() {
             break;
         }
 
+        // Tombol MENU atau SELECT membuka Pause Menu
+        if (AntBoy.Buttons.wasPressed(ANT_BTN_MENU) || (!gameOver && AntBoy.Buttons.wasPressed(ANT_BTN_SELECT))) {
+            if (!AntOS_ShowPauseMenu("TETRIS POCKET")) {
+                running = false;
+                break;
+            }
+            AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
+            render();
+            lastDrop = millis();
+        }
+
         if (!gameOver) {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_LEFT)) {
                 if (!checkCollision(curType, curRot, curX - 1, curY)) {
@@ -366,7 +378,7 @@ void TetrisGameClass::run() {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
                 resetGame();
                 lastDrop = millis();
-            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
                 running = false;
                 break;
             }

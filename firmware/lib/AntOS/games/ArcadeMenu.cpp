@@ -123,7 +123,7 @@ void ArcadeMenuClass::run() {
             }
             AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
             render();
-        } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+        } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             AntBoy.Audio.playClick();
             inMenu = false;
         }

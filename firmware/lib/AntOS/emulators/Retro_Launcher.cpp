@@ -172,7 +172,7 @@ void Retro_LauncherClass::showRomInfo(const char* filename) {
             }
             break;
         }
-        if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+        if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             break;
         }
         delay(20);
@@ -217,7 +217,7 @@ void Retro_LauncherClass::run(RetroConsoleType consoleType) {
             }
             AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
             renderBrowser();
-        } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+        } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             AntBoy.Audio.playClick();
             inBrowser = false;
         }

@@ -1,5 +1,6 @@
 #include "SpaceInvadersGame.h"
 #include <Preferences.h>
+#include "../AntOS_PauseModal.h"
 
 SpaceInvadersGameClass SpaceInvadersGame;
 
@@ -306,6 +307,16 @@ void SpaceInvadersGameClass::run() {
             break;
         }
 
+        // Tombol MENU atau SELECT membuka Pause Menu
+        if (AntBoy.Buttons.wasPressed(ANT_BTN_MENU) || (!gameOver && AntBoy.Buttons.wasPressed(ANT_BTN_SELECT))) {
+            if (!AntOS_ShowPauseMenu("SPACE INVADERS")) {
+                running = false;
+                break;
+            }
+            AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
+            render();
+        }
+
         if (!gameOver) {
             if (AntBoy.Buttons.isPressed(ANT_BTN_LEFT)) {
                 if (playerX > 15) playerX -= 4;
@@ -326,7 +337,7 @@ void SpaceInvadersGameClass::run() {
         } else {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
                 resetGame();
-            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
                 running = false;
                 break;
             }

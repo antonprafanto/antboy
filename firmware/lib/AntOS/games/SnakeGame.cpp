@@ -1,5 +1,6 @@
 #include "SnakeGame.h"
 #include <Preferences.h>
+#include "../AntOS_PauseModal.h"
 
 SnakeGameClass SnakeGame;
 
@@ -170,6 +171,17 @@ void SnakeGameClass::run() {
             break;
         }
 
+        // Tombol MENU atau SELECT membuka Pause Menu
+        if (AntBoy.Buttons.wasPressed(ANT_BTN_MENU) || (!gameOver && AntBoy.Buttons.wasPressed(ANT_BTN_SELECT))) {
+            if (!AntOS_ShowPauseMenu("SNAKE RETRO")) {
+                running = false;
+                break;
+            }
+            AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
+            render();
+            lastStep = millis();
+        }
+
         // Input
         if (!gameOver) {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_UP) && dirY == 0) {
@@ -185,7 +197,7 @@ void SnakeGameClass::run() {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
                 resetGame();
                 lastStep = millis();
-            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
                 running = false;
                 break;
             }

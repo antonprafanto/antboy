@@ -158,7 +158,7 @@ void ChiptunePlayerClass::renderUI() {
 
     AntBoy.Display.setTextSize(1);
     AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawCenteredText("[A] Play/Pause | [^/v] Ganti Lagu | [B] Keluar", fy + 7, ANTOS_COLOR_WHITE, 1);
+    AntBoy.Display.drawCenteredText("[A] Play/Pause | [^/v] Lagu | [MENU]/[B] Keluar", fy + 7, ANTOS_COLOR_WHITE, 1);
 }
 
 void ChiptunePlayerClass::run() {
@@ -178,7 +178,7 @@ void ChiptunePlayerClass::run() {
     while (inPlayer) {
         AntBoy.update();
 
-        if (AntBoy.checkExitShortcut()) {
+        if (AntBoy.checkExitShortcut() || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             AntBoy.Audio.stop();
             break;
         }
@@ -254,7 +254,7 @@ void ChiptunePlayerClass::playCurrentTrack() {
 
     while (*p && isPlaying) {
         AntBoy.update();
-        if (AntBoy.checkExitShortcut() || AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+        if (AntBoy.checkExitShortcut() || AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             AntBoy.Audio.stop();
             isPlaying = false;
             break;
@@ -268,7 +268,7 @@ void ChiptunePlayerClass::playCurrentTrack() {
                 while (isPaused) {
                     AntBoy.update();
                     if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) isPaused = false;
-                    if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) { isPlaying = false; break; }
+                    if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) { isPlaying = false; break; }
                     delay(30);
                 }
                 renderUI();

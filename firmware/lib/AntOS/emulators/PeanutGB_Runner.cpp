@@ -301,7 +301,7 @@ void PeanutGB_RunnerClass::runEmulationLoop() {
     AntBoy.Display.fillRect(0, fy, ANTBOY_SCREEN_WIDTH, 18, ANTOS_COLOR_BG_PANEL);
     AntBoy.Display.setTextSize(1);
     AntBoy.Display.setTextColor(ANTOS_COLOR_TEXT_DIM, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawCenteredText("SELECT + START: Keluar ke Launcher", fy + 5, ANTOS_COLOR_TEXT_DIM, 1);
+    AntBoy.Display.drawCenteredText("[MENU] Pause / Keluar  |  SELECT + START: Exit", fy + 5, ANTOS_COLOR_TEXT_DIM, 1);
 
     bool running = true;
     uint32_t lastFrame = millis();
@@ -314,14 +314,75 @@ void PeanutGB_RunnerClass::runEmulationLoop() {
             break;
         }
 
-        // Ganti Palette dengan Tombol MENU
+        // Tombol MENU membuka In-Game Pause & Exit Menu
         if (AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
-            currentPalette = (currentPalette + 1) % 4;
             AntBoy.Audio.playClick();
+            int modalW = 230;
+            int modalH = 104;
+            int mx = (ANTBOY_SCREEN_WIDTH - modalW) / 2;
+            int my = (ANTBOY_SCREEN_HEIGHT - modalH) / 2;
+
+            AntBoy.Display.fillRoundRect(mx, my, modalW, modalH, 6, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.drawRoundRect(mx, my, modalW, modalH, 6, ANTOS_COLOR_PIL_GAMING);
+
+            AntBoy.Display.setTextSize(1);
+            AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.drawCenteredText("== GAME BOY PAUSED ==", my + 12, ANTOS_COLOR_YELLOW, 1);
+
+            char palBuf[32];
+            snprintf(palBuf, sizeof(palBuf), "PALET: %s", PALETTE_NAMES[currentPalette]);
+            AntBoy.Display.setTextColor(ANTOS_COLOR_CYAN, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.drawCenteredText(palBuf, my + 30, ANTOS_COLOR_CYAN, 1);
+
+            AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.drawCenteredText("[SELECT] Ganti Palet Warna", my + 46, ANTOS_COLOR_WHITE, 1);
+
+            AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.drawCenteredText("[A] / [MENU] Lanjutkan Main", my + 64, ANTOS_COLOR_GREEN, 1);
+
+            AntBoy.Display.setTextColor(ANTOS_COLOR_RED, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.drawCenteredText("[B] Keluar ke Launcher", my + 82, ANTOS_COLOR_RED, 1);
+
+            delay(200);
+
+            bool inPause = true;
+            bool shouldExit = false;
+
+            while (inPause) {
+                AntBoy.update();
+                if (AntBoy.Buttons.wasPressed(ANT_BTN_SELECT)) {
+                    currentPalette = (currentPalette + 1) % 4;
+                    AntBoy.Audio.playTone(1800, 15);
+                    snprintf(palBuf, sizeof(palBuf), "PALET: %s", PALETTE_NAMES[currentPalette]);
+                    AntBoy.Display.fillRect(mx + 10, my + 30, modalW - 20, 12, ANTOS_COLOR_BG_PANEL);
+                    AntBoy.Display.setTextColor(ANTOS_COLOR_CYAN, ANTOS_COLOR_BG_PANEL);
+                    AntBoy.Display.drawCenteredText(palBuf, my + 30, ANTOS_COLOR_CYAN, 1);
+                } else if (AntBoy.Buttons.wasPressed(ANT_BTN_A) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
+                    AntBoy.Audio.playConfirm();
+                    inPause = false;
+                } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.checkExitShortcut()) {
+                    AntBoy.Audio.playClick();
+                    shouldExit = true;
+                    inPause = false;
+                }
+                delay(15);
+            }
+
+            if (shouldExit) {
+                break;
+            }
+
+            // Redraw frame & resume
+            AntBoy.Display.fillRoundRect(frameX, frameY, frameW, frameH, 6, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.drawRoundRect(frameX, frameY, frameW, frameH, 6, ANTOS_COLOR_PIL_GAMING);
+            AntBoy.Display.fillRect(80, 48, 160, 144, 0x0000);
+
             AntBoy.Display.fillRect(180, 6, 130, 12, ANTOS_COLOR_BG_PANEL);
             AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
             AntBoy.Display.setCursor(180, 6);
             AntBoy.Display.printf("PAL: %s [MENU]", PALETTE_NAMES[currentPalette]);
+
+            lastFrame = millis();
         }
 
         // Map Kontrol Tombol Fisik ANTBOY ke Joypad Game Boy
@@ -389,7 +450,7 @@ void PeanutGB_RunnerClass::run() {
             }
             AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
             renderBrowser();
-        } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+        } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
             AntBoy.Audio.playClick();
             inBrowser = false;
         }

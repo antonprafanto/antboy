@@ -1,5 +1,6 @@
 #include "BreakoutGame.h"
 #include <Preferences.h>
+#include "../AntOS_PauseModal.h"
 
 BreakoutGameClass BreakoutGame;
 
@@ -221,6 +222,16 @@ void BreakoutGameClass::run() {
             break;
         }
 
+        // Tombol MENU atau SELECT membuka Pause Menu
+        if (AntBoy.Buttons.wasPressed(ANT_BTN_MENU) || (!gameOver && AntBoy.Buttons.wasPressed(ANT_BTN_SELECT))) {
+            if (!AntOS_ShowPauseMenu("BREAKOUT / PONG")) {
+                running = false;
+                break;
+            }
+            AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
+            render();
+        }
+
         if (!gameOver) {
             float speed = AntBoy.Buttons.isPressed(ANT_BTN_B) ? 7.0 : 4.5;
             if (AntBoy.Buttons.isPressed(ANT_BTN_LEFT)) {
@@ -239,7 +250,7 @@ void BreakoutGameClass::run() {
         } else {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
                 resetGame();
-            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
+            } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
                 running = false;
                 break;
             }
