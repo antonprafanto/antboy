@@ -34,27 +34,34 @@ CARA MEMASANG KE KARTU MICROSD:
 DAFTAR GAME YANG SUDAH TERSEDIA:
 --------------------------------------------------------------------------------
 [1] Game Boy (GB) & Game Boy Color (GBC) (/roms/gb/):
-    - blastah.gb        : Space shooter arcade klasik
-    - brickster.gbc     : Game Boy Color Breakout / Arkanoid
-    - burly.gbc         : Platformer petualangan GBC
-    - combatsoccer.gbc  : Pertandingan sepak bola aksi arcade
-    - geometrix.gbc     : Puzzle balok susun warna
-    - initiald.gbc      : Balapan drift jalan raya
-    - klondike.gbc      : Permainan kartu klasik
-    - pokedamon.gbc     : Parodi RPG pertarungan monster
-    - ucity.gbc         : Simulasi pembangunan kota ala SimCity
+    - Super Mario Land.gb       : Petualangan Mario pertama di Game Boy (Sarasaland 1989)
+    - Super Mario Land 2 DX.gbc : Mario Land 2 (6 Golden Coins) Full Color Remaster DX
+    - blastah.gb                : Space shooter arcade klasik
+    - brickster.gbc             : Game Boy Color Breakout / Arkanoid
+    - burly.gbc                 : Platformer petualangan GBC
+    - combatsoccer.gbc          : Pertandingan sepak bola aksi arcade
+    - geometrix.gbc             : Puzzle balok susun warna
+    - initiald.gbc              : Balapan drift jalan raya
+    - klondike.gbc              : Permainan kartu klasik
+    - pokedamon.gbc             : Parodi RPG pertarungan monster
+    - ucity.gbc                 : Simulasi pembangunan kota ala SimCity
 
 [2] Nintendo NES / Famicom (/roms/nes/):
-    - ambushed.nes      : Tembak-tembakan aksi NES
-    - assimilate.nes    : Cyber sci-fi action
-    - blaster.nes       : Tembak sasaran arcade
-    - bombarray.nes     : Ledakan bom puzzle
-    - bootee.nes        : Platformer aksi
-    - cheril-the-goddess: Petualangan aksi fantasi
-    - cl1k.nes          : Puzzle refleks
-    - croom.nes         : Maze escape
-    - dabg.nes          : Retro arcade
-    - debrisdodger.nes  : Menghindar asteroid luar angkasa
+    - Contra.nes                : Game aksi tembak legendaris Konami (30 Nyawa Konami Code!)
+    - Super Mario Bros.nes      : Super Mario Bros asli (World 1-1 s/d 8-4)
+    - Super Mario Bros 2.nes    : Petualangan Mario di dunia mimpi Subcon
+    - Super Mario Bros 3.nes    : Petualangan terbesar Mario NES (Tanooki Suit, Airship)
+    - Super Mario Bros + Duck Hunt.nes : Cartridge nostalgia kombo Mario & Duck Hunt
+    - ambushed.nes              : Tembak-tembakan aksi NES
+    - assimilate.nes            : Cyber sci-fi action
+    - blaster.nes               : Tembak sasaran arcade
+    - bombarray.nes             : Ledakan bom puzzle
+    - bootee.nes                : Platformer aksi
+    - cheril-the-goddess.nes    : Petualangan aksi fantasi
+    - cl1k.nes                  : Puzzle refleks
+    - croom.nes                 : Maze escape
+    - dabg.nes                  : Retro arcade
+    - debrisdodger.nes          : Menghindar asteroid luar angkasa
 
 [3] Sega Master System (/roms/sms/):
     - astroforce.sms    : Shmup luar angkasa grafis halus
