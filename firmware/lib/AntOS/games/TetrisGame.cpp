@@ -353,31 +353,40 @@ void TetrisGameClass::run() {
             lastDrop = millis();
         }
 
+        bool needsRedraw = false;
+
         if (!gameOver) {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_LEFT)) {
                 if (!checkCollision(curType, curRot, curX - 1, curY)) {
                     curX--;
                     AntBoy.Audio.playTone(1200, 10);
+                    needsRedraw = true;
                 }
             } else if (AntBoy.Buttons.wasPressed(ANT_BTN_RIGHT)) {
                 if (!checkCollision(curType, curRot, curX + 1, curY)) {
                     curX++;
                     AntBoy.Audio.playTone(1200, 10);
+                    needsRedraw = true;
                 }
             } else if (AntBoy.Buttons.wasPressed(ANT_BTN_DOWN)) {
                 dropPiece();
                 score += 1;
+                needsRedraw = true;
             } else if (AntBoy.Buttons.wasPressed(ANT_BTN_UP)) {
                 hardDrop();
+                needsRedraw = true;
             } else if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
                 rotatePiece(true);
+                needsRedraw = true;
             } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B)) {
                 rotatePiece(false);
+                needsRedraw = true;
             }
         } else {
             if (AntBoy.Buttons.wasPressed(ANT_BTN_A)) {
                 resetGame();
                 lastDrop = millis();
+                needsRedraw = true;
             } else if (AntBoy.Buttons.wasPressed(ANT_BTN_B) || AntBoy.Buttons.wasPressed(ANT_BTN_MENU)) {
                 running = false;
                 break;
@@ -389,10 +398,13 @@ void TetrisGameClass::run() {
         if (!gameOver && (millis() - lastDrop >= dropInterval)) {
             lastDrop = millis();
             dropPiece();
+            needsRedraw = true;
         }
 
-        render();
-        delay(20);
+        if (needsRedraw) {
+            render();
+        }
+        delay(15);
     }
 
     saveHighScore();

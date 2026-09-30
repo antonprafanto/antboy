@@ -193,23 +193,52 @@ void SpaceInvadersGameClass::updateBullets() {
 
 void SpaceInvadersGameClass::render() {
     // 1. Top HUD Bar
-    AntBoy.Display.fillRect(0, 0, ANTBOY_SCREEN_WIDTH, 22, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawFastHLine(0, 22, ANTBOY_SCREEN_WIDTH, ANTOS_COLOR_PIL_GAMING);
+    if (needsFullRedraw) {
+        AntBoy.Display.fillRect(0, 0, ANTBOY_SCREEN_WIDTH, 22, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawFastHLine(0, 22, ANTBOY_SCREEN_WIDTH, ANTOS_COLOR_PIL_GAMING);
 
-    AntBoy.Display.setTextSize(1);
-    AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(10, 7);
-    AntBoy.Display.printf("SCORE: %04d", score);
+        AntBoy.Display.setTextSize(1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(10, 7);
+        AntBoy.Display.printf("SCORE: %04d", score);
 
-    AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(120, 7);
-    AntBoy.Display.printf("HI: %04d", highScore);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(120, 7);
+        AntBoy.Display.printf("HI: %04d", highScore);
 
-    AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(210, 7);
-    AntBoy.Display.printf("LIVES: %d  W:%d", playerLives, wave);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(210, 7);
+        AntBoy.Display.printf("LIVES: %d  W:%d", playerLives, wave);
 
-    // 2. Play Area Background
+        // Footer Controls
+        int fy = ANTBOY_SCREEN_HEIGHT - 20;
+        AntBoy.Display.fillRect(0, fy, ANTBOY_SCREEN_WIDTH, 20, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setTextSize(1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_TEXT_DIM, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawCenteredText("< > Gerak | [A] Tembak Laser | [B] Keluar", fy + 6, ANTOS_COLOR_TEXT_DIM, 1);
+
+        prevScore = score;
+        prevLives = playerLives;
+        prevWave = wave;
+        needsFullRedraw = false;
+    } else {
+        if (score != prevScore || playerLives != prevLives || wave != prevWave) {
+            AntBoy.Display.setTextSize(1);
+            AntBoy.Display.setTextColor(ANTOS_COLOR_WHITE, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.setCursor(10, 7);
+            AntBoy.Display.printf("SCORE: %04d", score);
+
+            AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.setCursor(210, 7);
+            AntBoy.Display.printf("LIVES: %d  W:%d", playerLives, wave);
+
+            prevScore = score;
+            prevLives = playerLives;
+            prevWave = wave;
+        }
+    }
+
+    // 2. Play Area Background (High-Speed 40 MHz)
     AntBoy.Display.fillRect(0, 23, ANTBOY_SCREEN_WIDTH, 195, ANTOS_COLOR_BG_DARK);
 
     // Bintang latar belakang sederhana
@@ -267,13 +296,6 @@ void SpaceInvadersGameClass::render() {
     AntBoy.Display.fillRoundRect(playerX - 10, 206, 20, 10, 2, ANTOS_COLOR_GREEN);
     AntBoy.Display.fillRect(playerX - 2, 201, 4, 6, ANTOS_COLOR_GREEN);
 
-    // Footer Controls
-    int fy = ANTBOY_SCREEN_HEIGHT - 20;
-    AntBoy.Display.fillRect(0, fy, ANTBOY_SCREEN_WIDTH, 20, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setTextSize(1);
-    AntBoy.Display.setTextColor(ANTOS_COLOR_TEXT_DIM, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawCenteredText("< > Gerak | [A] Tembak Laser | [B] Keluar", fy + 6, ANTOS_COLOR_TEXT_DIM, 1);
-
     if (gameOver) {
         int modalW = 200;
         int modalH = 80;
@@ -314,6 +336,7 @@ void SpaceInvadersGameClass::run() {
                 break;
             }
             AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
+            needsFullRedraw = true;
             render();
         }
 

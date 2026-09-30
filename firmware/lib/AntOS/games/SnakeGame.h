@@ -25,8 +25,12 @@ private:
     int nextDirX, nextDirY;
     Point food;
     int score;
+    int prevScore;
     int highScore;
     bool gameOver;
+    Point oldTail;
+    bool hasOldTail;
+    bool needsFullRedraw;
 
     void resetGame();
     void spawnFood();

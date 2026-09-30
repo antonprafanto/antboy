@@ -10,8 +10,9 @@ void AntBoy_DisplayClass::begin() {
     ledcSetup(_ledcChannel, 5000, 8);
     ledcAttachPin(ANTBOY_PIN_TFT_BLK, _ledcChannel);
 
-    // 2. Inisialisasi Layar ST7789
+    // 2. Inisialisasi Layar ST7789 High-Speed (40 MHz SPI)
     init(240, 320, SPI_MODE3);
+    setSPISpeed(40000000L);   // 40 MHz High-Speed SPI Bus (2.5x lebih cepat dari default 16 MHz!)
     setRotation(3);           // Landscape Mode 320x240
     invertDisplay(true);      // Koreksi Inversi Warna Panel IPS GMT020-03-SD
     fillScreen(ANTBOY_COLOR_BLACK);

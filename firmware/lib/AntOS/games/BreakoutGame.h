@@ -19,17 +19,22 @@ private:
     int bricksLeft;
 
     float paddleX;
+    float prevPaddleX;
     int paddleW;
 
     float ballX, ballY;
+    float prevBallX, prevBallY;
     float ballVX, ballVY;
     bool ballAttached;
 
     int lives;
+    int prevLives;
     int score;
+    int prevScore;
     int highScore;
     bool gameOver;
     bool gameWon;
+    bool needsFullRedraw;
 
     void resetGame();
     void resetBall();

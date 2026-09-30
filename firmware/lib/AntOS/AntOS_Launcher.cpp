@@ -171,6 +171,46 @@ void AntOS_LauncherClass::drawCarousel(int slideX) {
     }
 }
 
+void AntOS_LauncherClass::drawSubMenuItem(uint8_t i) {
+    if (i >= 4) return;
+    const PillarData& data = s_pillars[_currentPillar];
+
+    int startY = 56;
+    int itemH = 30;
+    int spacing = 35;
+    int itemW = 280;
+    int itemX = 20;
+
+    bool selected = (_subItemIndex == i);
+    int curY = startY + (i * spacing);
+    uint16_t bg = selected ? ANTOS_COLOR_BG_CARD_ACTIVE : ANTOS_COLOR_BG_PANEL;
+    uint16_t border = selected ? data.themeColor : ANTOS_COLOR_BORDER_DIM;
+    uint16_t textCol = selected ? ANTOS_COLOR_WHITE : ANTOS_COLOR_TEXT_DIM;
+
+    AntBoy.Display.fillRoundRect(itemX, curY, itemW, itemH, 4, bg);
+    AntBoy.Display.drawRoundRect(itemX, curY, itemW, itemH, 4, border);
+
+    // Kursor panah seleksi
+    if (selected) {
+        AntBoy.Display.setTextSize(1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, bg);
+        AntBoy.Display.setCursor(itemX + 8, curY + 11);
+        AntBoy.Display.print(">");
+    }
+
+    // Nama Aplikasi
+    AntBoy.Display.setTextSize(1);
+    AntBoy.Display.setTextColor(textCol, bg);
+    AntBoy.Display.setCursor(itemX + 22, curY + 11);
+    AntBoy.Display.print(data.appList[i]);
+
+    // Tag Status di kanan
+    AntBoy.Display.setTextColor(data.themeColor, bg);
+    int tagX = itemX + itemW - 60;
+    AntBoy.Display.setCursor(tagX, curY + 11);
+    AntBoy.Display.print("[SELECT]");
+}
+
 void AntOS_LauncherClass::drawSubMenu() {
     const PillarData& data = s_pillars[_currentPillar];
 
@@ -192,41 +232,8 @@ void AntOS_LauncherClass::drawSubMenu() {
     AntBoy.Display.drawCenteredText(data.title, 31, data.themeColor, 1);
 
     // 4 Item Aplikasi
-    int startY = 56;
-    int itemH = 30;
-    int spacing = 35;
-    int itemW = 280;
-    int itemX = 20;
-
     for (int i = 0; i < 4; i++) {
-        bool selected = (_subItemIndex == i);
-        int curY = startY + (i * spacing);
-        uint16_t bg = selected ? ANTOS_COLOR_BG_CARD_ACTIVE : ANTOS_COLOR_BG_PANEL;
-        uint16_t border = selected ? data.themeColor : ANTOS_COLOR_BORDER_DIM;
-        uint16_t textCol = selected ? ANTOS_COLOR_WHITE : ANTOS_COLOR_TEXT_DIM;
-
-        AntBoy.Display.fillRoundRect(itemX, curY, itemW, itemH, 4, bg);
-        AntBoy.Display.drawRoundRect(itemX, curY, itemW, itemH, 4, border);
-
-        // Kursor panah seleksi
-        if (selected) {
-            AntBoy.Display.setTextSize(1);
-            AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, bg);
-            AntBoy.Display.setCursor(itemX + 8, curY + 11);
-            AntBoy.Display.print(">");
-        }
-
-        // Nama Aplikasi
-        AntBoy.Display.setTextSize(1);
-        AntBoy.Display.setTextColor(textCol, bg);
-        AntBoy.Display.setCursor(itemX + 22, curY + 11);
-        AntBoy.Display.print(data.appList[i]);
-
-        // Tag Status di kanan
-        AntBoy.Display.setTextColor(data.themeColor, bg);
-        int tagX = itemX + itemW - 60;
-        AntBoy.Display.setCursor(tagX, curY + 11);
-        AntBoy.Display.print("[SELECT]");
+        drawSubMenuItem(i);
     }
 }
 
@@ -261,17 +268,11 @@ void AntOS_LauncherClass::update() {
 
 bool AntOS_LauncherClass::handleInput() {
     if (!_inSubMenu) {
-        // --- NAVIGASI CAROUSEL MENU UTAMA ---
+        // --- NAVIGASI CAROUSEL MENU UTAMA (Instan, Halus, Tanpa Strobo Hitam) ---
         if (AntBoy.Buttons.wasPressed(ANT_BTN_RIGHT)) {
             _currentPillar = (_currentPillar + 1) % ANTOS_PIL_COUNT;
             AntBoy.Audio.playTone(2637, 20);
-            drawCarousel(40);
-            drawFooterGuide();
-            delay(20);
-            drawCarousel(20);
-            drawFooterGuide();
-            delay(20);
-            drawCarousel(0);
+            drawCarousel();
             drawFooterGuide();
             _needsRedraw = false;
             return true;
@@ -280,13 +281,7 @@ bool AntOS_LauncherClass::handleInput() {
         if (AntBoy.Buttons.wasPressed(ANT_BTN_LEFT)) {
             _currentPillar = (_currentPillar > 0) ? _currentPillar - 1 : ANTOS_PIL_COUNT - 1;
             AntBoy.Audio.playTone(2637, 20);
-            drawCarousel(-40);
-            drawFooterGuide();
-            delay(20);
-            drawCarousel(-20);
-            drawFooterGuide();
-            delay(20);
-            drawCarousel(0);
+            drawCarousel();
             drawFooterGuide();
             _needsRedraw = false;
             return true;
@@ -300,18 +295,22 @@ bool AntOS_LauncherClass::handleInput() {
             return true;
         }
     } else {
-        // --- NAVIGASI SUB-MENU PILAR ---
+        // --- NAVIGASI SUB-MENU PILAR (Dirty-Rect: Hanya gambar ulang 2 item, Zero Flicker!) ---
         if (AntBoy.Buttons.wasPressed(ANT_BTN_UP)) {
+            uint8_t oldIndex = _subItemIndex;
             _subItemIndex = (_subItemIndex > 0) ? _subItemIndex - 1 : 3;
             AntBoy.Audio.playTone(2637, 15);
-            _needsRedraw = true;
+            drawSubMenuItem(oldIndex);
+            drawSubMenuItem(_subItemIndex);
             return true;
         }
 
         if (AntBoy.Buttons.wasPressed(ANT_BTN_DOWN)) {
+            uint8_t oldIndex = _subItemIndex;
             _subItemIndex = (_subItemIndex + 1) % 4;
             AntBoy.Audio.playTone(2637, 15);
-            _needsRedraw = true;
+            drawSubMenuItem(oldIndex);
+            drawSubMenuItem(_subItemIndex);
             return true;
         }
 

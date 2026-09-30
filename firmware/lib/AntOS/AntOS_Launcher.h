@@ -37,6 +37,7 @@ private:
     void drawCard(int x, int y, int w, int h, uint8_t pillarIndex, bool isFocused);
     void drawPillarIcon(int cx, int cy, uint8_t pillarIndex, uint16_t color);
     void drawSubMenu();
+    void drawSubMenuItem(uint8_t itemIndex);
     void drawFooterGuide();
 };
 

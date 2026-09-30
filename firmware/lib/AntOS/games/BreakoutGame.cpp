@@ -55,6 +55,7 @@ void BreakoutGameClass::resetGame() {
     paddleW = 44;
     gameOver = false;
     gameWon = false;
+    needsFullRedraw = true;
     initBricks();
     resetBall();
 }
@@ -123,6 +124,9 @@ void BreakoutGameClass::updateLogic() {
                 if (ballX >= bx - 3 && ballX <= bx + BRICK_W + 3 &&
                     ballY >= by - 3 && ballY <= by + BRICK_H + 3) {
                     bricks[r][c] = false;
+                    // Hapus visual bata secara instan tanpa redraw seluruh layar
+                    AntBoy.Display.fillRect(bx, by, BRICK_W + 2, BRICK_H + 2, ANTOS_COLOR_BG_DARK);
+
                     bricksLeft--;
                     score += BRICK_POINTS[r];
                     ballVY = -ballVY;
@@ -142,44 +146,83 @@ void BreakoutGameClass::updateLogic() {
 }
 
 void BreakoutGameClass::render() {
-    // 1. Top HUD
-    AntBoy.Display.fillRect(0, 0, ANTBOY_SCREEN_WIDTH, 22, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawFastHLine(0, 22, ANTBOY_SCREEN_WIDTH, ANTOS_COLOR_CYAN);
+    if (needsFullRedraw) {
+        // 1. Top HUD
+        AntBoy.Display.fillRect(0, 0, ANTBOY_SCREEN_WIDTH, 22, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawFastHLine(0, 22, ANTBOY_SCREEN_WIDTH, ANTOS_COLOR_CYAN);
 
-    AntBoy.Display.setTextSize(1);
-    AntBoy.Display.setTextColor(ANTOS_COLOR_CYAN, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(10, 7);
-    AntBoy.Display.printf("BREAKOUT  SCORE: %04d", score);
+        AntBoy.Display.setTextSize(1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_CYAN, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(10, 7);
+        AntBoy.Display.printf("BREAKOUT  SCORE: %04d", score);
 
-    AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(170, 7);
-    AntBoy.Display.printf("HI: %04d", highScore);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(170, 7);
+        AntBoy.Display.printf("HI: %04d", highScore);
 
-    AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(260, 7);
-    AntBoy.Display.printf("BALLS: %d", lives);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(260, 7);
+        AntBoy.Display.printf("BALLS: %d", lives);
 
-    // 2. Play Area
-    AntBoy.Display.fillRect(0, 23, ANTBOY_SCREEN_WIDTH, 217, ANTOS_COLOR_BG_DARK);
+        // 2. Play Area Background
+        AntBoy.Display.fillRect(0, 23, ANTBOY_SCREEN_WIDTH, 217, ANTOS_COLOR_BG_DARK);
 
-    // Gambar Seluruh Bata
-    for (int r = 0; r < BRICK_ROWS; r++) {
-        for (int c = 0; c < BRICK_COLS; c++) {
-            if (bricks[r][c]) {
-                int bx = BRICK_START_X + (c * (BRICK_W + 3));
-                int by = BRICK_START_Y + (r * (BRICK_H + 4));
-                AntBoy.Display.fillRoundRect(bx, by, BRICK_W, BRICK_H, 2, BRICK_COLORS[r]);
-                AntBoy.Display.drawFastHLine(bx + 1, by + 1, BRICK_W - 2, ANTOS_COLOR_WHITE); // Bevel highlight
+        // Gambar Seluruh Bata Aktif
+        for (int r = 0; r < BRICK_ROWS; r++) {
+            for (int c = 0; c < BRICK_COLS; c++) {
+                if (bricks[r][c]) {
+                    int bx = BRICK_START_X + (c * (BRICK_W + 3));
+                    int by = BRICK_START_Y + (r * (BRICK_H + 4));
+                    AntBoy.Display.fillRoundRect(bx, by, BRICK_W, BRICK_H, 2, BRICK_COLORS[r]);
+                    AntBoy.Display.drawFastHLine(bx + 1, by + 1, BRICK_W - 2, ANTOS_COLOR_WHITE);
+                }
             }
         }
+
+        // Paddle
+        AntBoy.Display.fillRoundRect((int)paddleX, 214, paddleW, 8, 3, ANTOS_COLOR_CYAN);
+        AntBoy.Display.drawFastHLine((int)paddleX + 2, 215, paddleW - 4, ANTOS_COLOR_WHITE);
+
+        // Bola
+        AntBoy.Display.fillCircle((int)ballX, (int)ballY, 3, ANTOS_COLOR_YELLOW);
+
+        prevBallX = ballX; prevBallY = ballY;
+        prevPaddleX = paddleX;
+        prevScore = score; prevLives = lives;
+        needsFullRedraw = false;
+    } else {
+        // --- DIRTY RECTANGLE RENDERING (60 FPS, 100% BEBAS FLICKER) ---
+        // 1. Update HUD angka jika berubah
+        if (score != prevScore) {
+            AntBoy.Display.setTextSize(1);
+            AntBoy.Display.setTextColor(ANTOS_COLOR_CYAN, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.setCursor(10, 7);
+            AntBoy.Display.printf("BREAKOUT  SCORE: %04d", score);
+            prevScore = score;
+        }
+        if (lives != prevLives) {
+            AntBoy.Display.setTextSize(1);
+            AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.setCursor(260, 7);
+            AntBoy.Display.printf("BALLS: %d", lives);
+            prevLives = lives;
+        }
+
+        // 2. Hapus posisi bola sebelumnya (radius 4 px)
+        AntBoy.Display.fillCircle((int)prevBallX, (int)prevBallY, 4, ANTOS_COLOR_BG_DARK);
+
+        // 3. Update Paddle jika bergeser
+        if ((int)prevPaddleX != (int)paddleX) {
+            AntBoy.Display.fillRect((int)prevPaddleX, 214, paddleW, 8, ANTOS_COLOR_BG_DARK);
+            AntBoy.Display.fillRoundRect((int)paddleX, 214, paddleW, 8, 3, ANTOS_COLOR_CYAN);
+            AntBoy.Display.drawFastHLine((int)paddleX + 2, 215, paddleW - 4, ANTOS_COLOR_WHITE);
+            prevPaddleX = paddleX;
+        }
+
+        // 4. Gambar bola di posisi baru
+        AntBoy.Display.fillCircle((int)ballX, (int)ballY, 3, ANTOS_COLOR_YELLOW);
+        prevBallX = ballX; prevBallY = ballY;
     }
-
-    // Paddle
-    AntBoy.Display.fillRoundRect((int)paddleX, 214, paddleW, 8, 3, ANTOS_COLOR_CYAN);
-    AntBoy.Display.drawFastHLine((int)paddleX + 2, 215, paddleW - 4, ANTOS_COLOR_WHITE);
-
-    // Bola
-    AntBoy.Display.fillCircle((int)ballX, (int)ballY, 3, ANTOS_COLOR_YELLOW);
 
     if (ballAttached) {
         AntBoy.Display.setTextSize(1);
@@ -229,6 +272,7 @@ void BreakoutGameClass::run() {
                 break;
             }
             AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
+            needsFullRedraw = true;
             render();
         }
 

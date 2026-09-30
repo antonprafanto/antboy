@@ -40,9 +40,13 @@ private:
     uint32_t lastUfoSpawn;
 
     int score;
+    int prevScore;
     int highScore;
     int wave;
+    int prevWave;
+    int prevLives;
     bool gameOver;
+    bool needsFullRedraw;
 
     void resetGame();
     void initWave();

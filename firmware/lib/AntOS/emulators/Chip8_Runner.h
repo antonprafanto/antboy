@@ -13,6 +13,7 @@ private:
     uint16_t I;
     uint16_t pc;
     uint8_t gfx[64 * 32];
+    uint8_t prevGfx[64 * 32];
     uint8_t delay_timer;
     uint8_t sound_timer;
     uint16_t stack[16];
@@ -20,6 +21,7 @@ private:
     uint8_t key[16];
 
     bool drawFlag;
+    bool forceFullDraw;
     bool isRunning;
 
     void reset();

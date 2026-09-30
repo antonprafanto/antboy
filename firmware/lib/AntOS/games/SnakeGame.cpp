@@ -49,7 +49,10 @@ void SnakeGameClass::resetGame() {
     nextDirX = 1;
     nextDirY = 0;
     score = 0;
+    prevScore = -1;
     gameOver = false;
+    hasOldTail = false;
+    needsFullRedraw = true;
     spawnFood();
 }
 
@@ -77,6 +80,10 @@ void SnakeGameClass::updateLogic() {
         }
     }
 
+    // Catat posisi ekor lama untuk dihapus secara parsial (dirty rect)
+    oldTail = snake[snakeLen - 1];
+    hasOldTail = true;
+
     // Geser badan
     for (int i = snakeLen - 1; i > 0; i--) {
         snake[i] = snake[i - 1];
@@ -88,52 +95,96 @@ void SnakeGameClass::updateLogic() {
         score += 10;
         AntBoy.Audio.playTone(2093, 20); // C7 chime
         if (snakeLen < 195) {
-            snake[snakeLen] = snake[snakeLen - 1];
+            snake[snakeLen] = oldTail;
             snakeLen++;
+            hasOldTail = false; // Ekor tidak dihapus karena memanjang
         }
         spawnFood();
     }
 }
 
 void SnakeGameClass::render() {
-    // Top Score Bar
-    AntBoy.Display.fillRect(0, 0, ANTBOY_SCREEN_WIDTH, 22, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.drawFastHLine(0, 22, ANTBOY_SCREEN_WIDTH, ANTOS_COLOR_GREEN);
+    if (needsFullRedraw) {
+        // Top Score Bar
+        AntBoy.Display.fillRect(0, 0, ANTBOY_SCREEN_WIDTH, 22, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.drawFastHLine(0, 22, ANTBOY_SCREEN_WIDTH, ANTOS_COLOR_GREEN);
 
-    AntBoy.Display.setTextSize(1);
-    AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(12, 7);
-    AntBoy.Display.printf("SNAKE RETRO  SCORE: %04d", score);
+        AntBoy.Display.setTextSize(1);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(12, 7);
+        AntBoy.Display.printf("SNAKE RETRO  SCORE: %04d", score);
 
-    AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
-    AntBoy.Display.setCursor(205, 7);
-    AntBoy.Display.printf("HIGH: %04d", highScore);
+        AntBoy.Display.setTextColor(ANTOS_COLOR_YELLOW, ANTOS_COLOR_BG_PANEL);
+        AntBoy.Display.setCursor(205, 7);
+        AntBoy.Display.printf("HIGH: %04d", highScore);
 
-    // Arena border
-    AntBoy.Display.drawRect(OFFSET_X - 1, OFFSET_Y - 1, (GRID_W * CELL_SIZE) + 2, (GRID_H * CELL_SIZE) + 2, ANTOS_COLOR_BORDER_DIM);
-    AntBoy.Display.fillRect(OFFSET_X, OFFSET_Y, GRID_W * CELL_SIZE, GRID_H * CELL_SIZE, ANTOS_COLOR_BG_DARK);
+        // Arena border
+        AntBoy.Display.drawRect(OFFSET_X - 1, OFFSET_Y - 1, (GRID_W * CELL_SIZE) + 2, (GRID_H * CELL_SIZE) + 2, ANTOS_COLOR_BORDER_DIM);
+        AntBoy.Display.fillRect(OFFSET_X, OFFSET_Y, GRID_W * CELL_SIZE, GRID_H * CELL_SIZE, ANTOS_COLOR_BG_DARK);
 
-    // Gambar makanan (Apple neon merah)
-    int fx = OFFSET_X + (food.x * CELL_SIZE);
-    int fy = OFFSET_Y + (food.y * CELL_SIZE);
-    AntBoy.Display.fillRoundRect(fx + 2, fy + 2, CELL_SIZE - 4, CELL_SIZE - 4, 3, ANTOS_COLOR_RED);
-    AntBoy.Display.drawPixel(fx + 4, fy + 4, ANTOS_COLOR_WHITE); // Highlight
+        // Gambar makanan (Apple neon merah)
+        int fx = OFFSET_X + (food.x * CELL_SIZE);
+        int fy = OFFSET_Y + (food.y * CELL_SIZE);
+        AntBoy.Display.fillRoundRect(fx + 2, fy + 2, CELL_SIZE - 4, CELL_SIZE - 4, 3, ANTOS_COLOR_RED);
+        AntBoy.Display.drawPixel(fx + 4, fy + 4, ANTOS_COLOR_WHITE);
 
-    // Gambar ular
-    for (int i = 0; i < snakeLen; i++) {
-        int sx = OFFSET_X + (snake[i].x * CELL_SIZE);
-        int sy = OFFSET_Y + (snake[i].y * CELL_SIZE);
-        if (i == 0) {
-            // Kepala
-            AntBoy.Display.fillRoundRect(sx + 1, sy + 1, CELL_SIZE - 2, CELL_SIZE - 2, 3, ANTOS_COLOR_GREEN);
-            // Mata
-            AntBoy.Display.drawPixel(sx + 4, sy + 4, ANTOS_COLOR_BG_DARK);
-            AntBoy.Display.drawPixel(sx + 10, sy + 4, ANTOS_COLOR_BG_DARK);
-        } else {
-            // Tubuh
-            uint16_t bodyColor = (i % 2 == 0) ? 0x0664 : 0x0523; // Neon cyber green shading
-            AntBoy.Display.fillRoundRect(sx + 2, sy + 2, CELL_SIZE - 4, CELL_SIZE - 4, 2, bodyColor);
+        // Gambar ular penuh
+        for (int i = 0; i < snakeLen; i++) {
+            int sx = OFFSET_X + (snake[i].x * CELL_SIZE);
+            int sy = OFFSET_Y + (snake[i].y * CELL_SIZE);
+            if (i == 0) {
+                AntBoy.Display.fillRoundRect(sx + 1, sy + 1, CELL_SIZE - 2, CELL_SIZE - 2, 3, ANTOS_COLOR_GREEN);
+                AntBoy.Display.drawPixel(sx + 4, sy + 4, ANTOS_COLOR_BG_DARK);
+                AntBoy.Display.drawPixel(sx + 10, sy + 4, ANTOS_COLOR_BG_DARK);
+            } else {
+                uint16_t bodyColor = (i % 2 == 0) ? 0x0664 : 0x0523;
+                AntBoy.Display.fillRoundRect(sx + 2, sy + 2, CELL_SIZE - 4, CELL_SIZE - 4, 2, bodyColor);
+            }
         }
+
+        prevScore = score;
+        needsFullRedraw = false;
+    } else {
+        // --- DIRTY RECT RENDERING: HANYA GAMBAR PERUBAHAN (ZERO FLICKER) ---
+        // 1. Update Score HUD jika berubah
+        if (score != prevScore) {
+            AntBoy.Display.setTextSize(1);
+            AntBoy.Display.setTextColor(ANTOS_COLOR_GREEN, ANTOS_COLOR_BG_PANEL);
+            AntBoy.Display.setCursor(12, 7);
+            AntBoy.Display.printf("SNAKE RETRO  SCORE: %04d", score);
+            prevScore = score;
+        }
+
+        // 2. Hapus blok ekor lama jika ular bergerak tanpa memanjang
+        if (hasOldTail) {
+            int tx = OFFSET_X + (oldTail.x * CELL_SIZE);
+            int ty = OFFSET_Y + (oldTail.y * CELL_SIZE);
+            AntBoy.Display.fillRect(tx, ty, CELL_SIZE, CELL_SIZE, ANTOS_COLOR_BG_DARK);
+            hasOldTail = false;
+        }
+
+        // 3. Ubah kepala lama (snake[1]) menjadi badan
+        if (snakeLen > 1) {
+            int bx = OFFSET_X + (snake[1].x * CELL_SIZE);
+            int by = OFFSET_Y + (snake[1].y * CELL_SIZE);
+            AntBoy.Display.fillRect(bx, by, CELL_SIZE, CELL_SIZE, ANTOS_COLOR_BG_DARK);
+            uint16_t bodyColor = (1 % 2 == 0) ? 0x0664 : 0x0523;
+            AntBoy.Display.fillRoundRect(bx + 2, by + 2, CELL_SIZE - 4, CELL_SIZE - 4, 2, bodyColor);
+        }
+
+        // 4. Gambar kepala baru (snake[0])
+        int hx = OFFSET_X + (snake[0].x * CELL_SIZE);
+        int hy = OFFSET_Y + (snake[0].y * CELL_SIZE);
+        AntBoy.Display.fillRect(hx, hy, CELL_SIZE, CELL_SIZE, ANTOS_COLOR_BG_DARK);
+        AntBoy.Display.fillRoundRect(hx + 1, hy + 1, CELL_SIZE - 2, CELL_SIZE - 2, 3, ANTOS_COLOR_GREEN);
+        AntBoy.Display.drawPixel(hx + 4, hy + 4, ANTOS_COLOR_BG_DARK);
+        AntBoy.Display.drawPixel(hx + 10, hy + 4, ANTOS_COLOR_BG_DARK);
+
+        // 5. Pastikan makanan selalu tergambar
+        int fx = OFFSET_X + (food.x * CELL_SIZE);
+        int fy = OFFSET_Y + (food.y * CELL_SIZE);
+        AntBoy.Display.fillRoundRect(fx + 2, fy + 2, CELL_SIZE - 4, CELL_SIZE - 4, 3, ANTOS_COLOR_RED);
+        AntBoy.Display.drawPixel(fx + 4, fy + 4, ANTOS_COLOR_WHITE);
     }
 
     if (gameOver) {
@@ -178,6 +229,7 @@ void SnakeGameClass::run() {
                 break;
             }
             AntBoy.Display.fillScreen(ANTOS_COLOR_BG_DARK);
+            needsFullRedraw = true;
             render();
             lastStep = millis();
         }

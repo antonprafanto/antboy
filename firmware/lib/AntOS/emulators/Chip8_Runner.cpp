@@ -47,11 +47,13 @@ void Chip8_RunnerClass::reset() {
     delay_timer = 0;
     sound_timer = 0;
     drawFlag = true;
+    forceFullDraw = true;
     isRunning = true;
 
     memset(memory, 0, sizeof(memory));
     memset(V, 0, sizeof(V));
     memset(gfx, 0, sizeof(gfx));
+    memset(prevGfx, 0xFF, sizeof(prevGfx));
     memset(stack, 0, sizeof(stack));
     memset(key, 0, sizeof(key));
 
@@ -199,18 +201,23 @@ void Chip8_RunnerClass::emulateCycle() {
 }
 
 void Chip8_RunnerClass::renderDisplay() {
-    if (!drawFlag) return;
+    if (!drawFlag && !forceFullDraw) return;
     drawFlag = false;
 
     // Skala 64x32 ke layar 320x160 (Faktor skala 5x: 64*5 = 320, 32*5 = 160)
-    // Ditampilkan di Y=40 s.d. 200
+    // Ditampilkan di Y=40 s.d. 200 (Dirty-rect pixel diff: Zero Flicker!)
     int startY = 40;
     for (int y = 0; y < 32; y++) {
         for (int x = 0; x < 64; x++) {
-            uint16_t col = gfx[y * 64 + x] ? ANTOS_COLOR_GREEN : ANTOS_COLOR_BG_DARK;
-            AntBoy.Display.fillRect(x * 5, startY + (y * 5), 5, 5, col);
+            int idx = y * 64 + x;
+            if (forceFullDraw || gfx[idx] != prevGfx[idx]) {
+                prevGfx[idx] = gfx[idx];
+                uint16_t col = gfx[idx] ? ANTOS_COLOR_GREEN : ANTOS_COLOR_BG_DARK;
+                AntBoy.Display.fillRect(x * 5, startY + (y * 5), 5, 5, col);
+            }
         }
     }
+    forceFullDraw = false;
 }
 
 void Chip8_RunnerClass::updateInput() {
