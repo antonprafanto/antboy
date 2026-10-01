@@ -23,3 +23,6 @@ Thumbs.db
 ehthumbs.db
 [Dd]esktop.ini
 .DS_Store
+
+# Large binary asset folders (keep local for SD card)
+sdcard_content/romart/
