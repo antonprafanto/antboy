@@ -1,127 +1,85 @@
 ================================================================================
-          ANTBOY (2026) — PANDUAN STRUKTUR FOLDER KARTU MICROSD
+          ANTBOY (2026) — PANDUAN KARTU MICROSD (RETRO-GO ENGINE)
 ================================================================================
 
-Folder ini berisi seluruh file ROM retro dan musik yang siap disalin langsung 
-ke MicroSD Anda untuk dimainkan di perangkat ANTBOY.
+Firmware ANTBOY saat ini telah ditingkatkan ke arsitektur resmi Retro-Go (ST7789 
+240x320 IPS) yang 100% kompatibel dengan skema hardware Circuit-Digest & ANTBOY.
+
+Seluruh emulator (NES, GB, GBC, Sega Master System, Atari, Game & Watch, PC Engine) 
+berjalan secara native dengan performa 60 FPS, save state, dan boxart!
 
 --------------------------------------------------------------------------------
 CARA MEMASANG KE KARTU MICROSD:
 --------------------------------------------------------------------------------
-1. Masukkan kartu MicroSD ke PC / Card Reader Anda (format FAT32).
-2. Salin SELURUH folder dari folder ini ("sdcard_content") langsung ke 
-   ROOT kartu MicroSD Anda (misalnya drive E:\ atau D:\):
+1. Format kartu MicroSD Anda dengan format FAT32.
+2. Salin folder 'roms' dan 'romart' dari folder ini ("sdcard_content") langsung ke 
+   ROOT kartu MicroSD Anda (misal drive E:\ atau D:\):
 
    Root MicroSD (E:\)
    ├── /roms/
-   │   ├── /gb/      <- ROM Game Boy (.gb) & Game Boy Color (.gbc)
-   │   ├── /nes/     <- ROM Nintendo NES / Famicom (.nes)
-   │   ├── /sms/     <- ROM Sega Master System (.sms) & Game Gear (.gg)
-   │   ├── /atari/   <- ROM Atari 2600 (.bin) & CHIP-8 VM (.ch8)
-   │   └── /saves/   <- File Save RAM & State (.sav) otomatis tersimpan di sini
-   ├── /music/       <- File Lagu 8-Bit Chiptune (.rtttl)
-   ├── /apps/        <- Aplikasi & payload eksternal
-   ├── /logs/        <- Catatan log sistem & network audit
-   └── /screenshots/ <- Tangkapan layar framebuffer LCD
+   │   ├── /nes/     <- Nintendo NES / Famicom (.nes) [Mario, Contra, dll.]
+   │   ├── /gb/      <- Game Boy Classic (.gb) [Super Mario Land, dll.]
+   │   ├── /gbc/     <- Game Boy Color (.gbc) [Mario Land 2 DX, dll.]
+   │   ├── /sms/     <- Sega Master System (.sms) & Game Gear (.gg)
+   │   ├── /a26/     <- Atari 2600 (.bin, .a26) [Halo 2600, Anguna, dll.]
+   │   ├── /gw/      <- Game & Watch
+   │   ├── /pce/     <- PC Engine / TurboGrafx-16 (.pce)
+   │   ├── /lnx/     <- Atari Lynx (.lnx)
+   │   └── /saves/   <- Folder otomatis untuk file Save State & SRAM
+   └── /romart/      <- Ribuan Cover Art / Box Art game resmi (format CRC32 .png)
 
 3. Lepaskan kartu MicroSD dari PC dengan aman (Safely Remove).
-4. Masukkan kartu MicroSD ke slot J2 di ANTBOY Anda.
-5. Nyalakan ANTBOY: Ikon kartu SD di Status Bar atas akan berwarna HIJAU [SD READY].
-6. Buka pilar RETRO GAMING di launcher, pilih konsol yang ingin dimainkan, 
-   dan ROM akan langsung muncul pada daftar menu!
+4. Masukkan kartu MicroSD ke slot kartu di ANTBOY.
+5. Nyalakan perangkat ANTBOY Anda. Retro-Go akan otomatis mendeteksi MicroSD 
+   dan menampilkan tab konsol beserta daftar game dan cover art-nya!
 
 --------------------------------------------------------------------------------
-DAFTAR GAME YANG SUDAH TERSEDIA:
+TOMBOL KONTROL (RETRO-GO):
 --------------------------------------------------------------------------------
-[1] Game Boy (GB) & Game Boy Color (GBC) (/roms/gb/):
-    - Super Mario Land.gb       : Petualangan Mario pertama di Game Boy (Sarasaland 1989)
-    - Super Mario Land 2 DX.gbc : Mario Land 2 (6 Golden Coins) Full Color Remaster DX
-    - blastah.gb                : Space shooter arcade klasik
-    - brickster.gbc             : Game Boy Color Breakout / Arkanoid
-    - burly.gbc                 : Platformer petualangan GBC
-    - combatsoccer.gbc          : Pertandingan sepak bola aksi arcade
-    - geometrix.gbc             : Puzzle balok susun warna
-    - initiald.gbc              : Balapan drift jalan raya
-    - klondike.gbc              : Permainan kartu klasik
-    - pokedamon.gbc             : Parodi RPG pertarungan monster
-    - ucity.gbc                 : Simulasi pembangunan kota ala SimCity
+- D-Pad (Arah)   : Navigasi menu / Gerak karakter dalam game
+- Tombol A       : Pilih (Enter) / Aksi Utama (Lompat / Tembak)
+- Tombol B       : Batal (Back) / Aksi Kedua (Lari / Serang)
+- Tombol START   : Memulai permainan / Pause dalam game
+- Tombol SELECT  : Opsi dalam game / ganti tab di Launcher
+- Tombol MENU    : Buka Menu Retro-Go (Save State, Load State, Volume, 
+                   Kecerahan Layar, Keluar ke Launcher)
+- Tombol VOL     : Pintasan cepat pengaturan volume audio
 
-[2] Nintendo NES / Famicom (/roms/nes/):
-    - Contra.nes                : Game aksi tembak legendaris Konami (30 Nyawa Konami Code!)
-    - Super Mario Bros.nes      : Super Mario Bros asli (World 1-1 s/d 8-4)
-    - Super Mario Bros 2.nes    : Petualangan Mario di dunia mimpi Subcon
-    - Super Mario Bros 3.nes    : Petualangan terbesar Mario NES (Tanooki Suit, Airship)
-    - Super Mario Bros + Duck Hunt.nes : Cartridge nostalgia kombo Mario & Duck Hunt
-    - ambushed.nes              : Tembak-tembakan aksi NES
-    - assimilate.nes            : Cyber sci-fi action
-    - blaster.nes               : Tembak sasaran arcade
-    - bombarray.nes             : Ledakan bom puzzle
-    - bootee.nes                : Platformer aksi
-    - cheril-the-goddess.nes    : Petualangan aksi fantasi
-    - cl1k.nes                  : Puzzle refleks
-    - croom.nes                 : Maze escape
-    - dabg.nes                  : Retro arcade
-    - debrisdodger.nes          : Menghindar asteroid luar angkasa
+--------------------------------------------------------------------------------
+DAFTAR GAME SIAP MAIN YANG SUDAH TERSEDIA:
+--------------------------------------------------------------------------------
+[1] Nintendo NES / Famicom (/roms/nes/):
+    - Super Mario Bros.nes      : Super Mario Bros original legendaris
+    - Super Mario Bros 2.nes    : Petualangan Mario di Subcon
+    - Super Mario Bros 3.nes    : Mario Bros 3 (Tanooki, Frog Suit, P-Wing)
+    - Super Mario Bros + Duck Hunt.nes : Cartridge kombo nostalgia
+    - Contra (USA).nes          : Aksi tembak legendaris Konami (30 Lives)
+    - cheril-the-goddess.nes    : Petualangan platformer aksi
+    - blaster.nes               : Arcade space shooter
+    - bombarray.nes             : Aksi peledak taktis
+    - bootee.nes, cl1k.nes, croom.nes, debrisdodger.nes
+
+[2] Game Boy (GB) & Game Boy Color (GBC) (/roms/gb/ & /roms/gbc/):
+    - Super Mario Land.gb       : Petualangan orisinal Mario Game Boy (1989)
+    - Super Mario Land 2 DX.gbc : Mario 6 Golden Coins Full Color Remaster DX
+    - blastah.gb                : Space shooter arcade
+    - brickster.gbc             : Arkanoid / Breakout GBC
+    - initiald.gbc              : Balapan jalan raya drift
+    - combatsoccer.gbc          : Sepak bola retro arcade
+    - ucity.gbc                 : Simulasi kota SimCity di Game Boy
+    - klondike.gbc, pokedamon.gbc, burly.gbc, geometrix.gbc
 
 [3] Sega Master System (/roms/sms/):
-    - astroforce.sms    : Shmup luar angkasa grafis halus
-    - 2048sanqui.sms    : Puzzle angka 2048
-    - 3dcity.sms        : Aksi 3D kota
-    - acidreflux.sms    : Aksi arcade
-    - artillerymaster8k : Tembak artileri taktis
-    - balubabalok.sms   : Petualangan platformer
-    - battleships.sms   : Perang kapal laut
-    - blockquest.sms    : Petualangan teka-teki
+    - astroforce.sms            : Shoot 'em up luar angkasa grafis halus
+    - 2048sanqui.sms            : Puzzle angka 2048
+    - 3dcity.sms, acidreflux.sms, battleships.sms, blockquest.sms
 
-[4] Atari 2600 & CHIP-8 (/roms/atari/):
-    - halo2600.bin      : Karya legendaris Master Chief ala Atari 2600 (Ed Fries)
-    - flappy_the_duck   : Flappy Bird retro Atari
-    - anguna.bin        : Action RPG Zelda-style
-    - dkarcade2600.bin  : Donkey Kong arcade
-    - fishy.bin         : Survival ikan laut
-    - nanowing.bin      : Pesawat luar angkasa
-    - jammed.bin        : Puzzle geser mobil
-    - pong.ch8          : CHIP-8 Pong klasik
-    - brix.ch8          : CHIP-8 Breakout
-    - invaders.ch8      : CHIP-8 Space Invaders
-    - tetris.ch8        : CHIP-8 Tetris
-    - blinky.ch8        : CHIP-8 Pac-Man clone
-    - astrododge.ch8    : CHIP-8 Astro Dodge
-    - airplane.ch8      : CHIP-8 Airplane Dogfight
-    - blitz.ch8         : CHIP-8 City Bomber
-
-[5] Chiptune 8-Bit Audio Tracks (/music/):
-    - tetris.rtttl      : Korobeiniki (Game Boy Theme A)
-    - mario.rtttl       : Super Mario Bros Overworld
-    - zelda.rtttl       : The Legend of Zelda Overworld
-    - pacman.rtttl      : Pac-Man Intro Jingle
-    - megaman.rtttl     : Mega Man 2 (Dr. Wily Stage 1)
-    - doom.rtttl        : Doom (E1M1 - At Doom's Gate)
-    - pokemon.rtttl     : Pokemon Title Theme
-    - starwars.rtttl    : Star Wars Main Theme
-    - castlevania.rtttl : Castlevania Vampire Killer
+[4] Atari 2600 (/roms/a26/):
+    - halo2600.bin              : Master Chief petualangan Atari 2600 (Ed Fries)
+    - anguna.bin                : Action RPG Zelda style
+    - dkarcade2600.bin          : Donkey Kong arcade Atari
+    - fishy.bin, flappy_the_duck.bin, jammed.bin, nanowing.bin
 
 ================================================================================
-CATATAN PENTING KOMPATIBILITAS MEMORI & ENGINE:
-================================================================================
-1. Game Boy & GBC (Peanut-GB):
-   - Modul ESP32 Wemos D1 Mini32 memiliki ~270 KB free internal SRAM (tanpa chip PSRAM eksternal).
-   - Game Boy ROM di bawah ~200 KB (seperti 'Super Mario Land.gb' [64 KB], 'blastah.gb' [64 KB], 
-     'brickster.gbc' [32 KB], 'ucity.gbc' [128 KB], dll.) dimuat 100% langsung ke dalam RAM!
-     Ini menjamin emulasi 60 FPS super stabil tanpa hambatan MicroSD dan tanpa restart.
-   - ROM yang berukuran sangat besar (seperti 'Super Mario Land 2 DX.gbc' [1.024 KB / 1 MB]) 
-     melebihi kapasitas RAM internal ESP32. ANTBOY akan menampilkan pesan pemberitahuan di layar 
-     dan meminta Anda memilih game berukuran < 200 KB.
-
-2. Atari 2600 & CHIP-8 VM:
-   - File berekstensi .ch8 (seperti 'tetris.ch8', 'brix.ch8', 'invaders.ch8', 'blitz.ch8', 'pong.ch8')
-     berjalan 100% mulus dengan delta pixel update (zero flicker).
-
-3. Nintendo NES & Sega Master System:
-   - ROM NES & SMS disediakan dalam MicroSD untuk persiapan porting engine di masa depan.
-   - Jika ingin bernostalgia game Mario atau game aksi retro, gunakan 'Super Mario Land.gb' 
-     di folder /roms/gb/ yang sudah terbukti berjalan lancar di ANTBOY!
-
-================================================================================
-Selamat bernostalgia bermain retro game di ANTBOY!
+Selamat menikmati ribuan jam nostalgia retro gaming di ANTBOY!
 ================================================================================
